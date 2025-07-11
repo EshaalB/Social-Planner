@@ -1,0 +1,53 @@
+:root {
+  /* Colors */
+  --primary: #7c3aed;
+  --primary-light: #a855f7;
+  --secondary: #1e1b4b;
+  --accent: #c084fc;
+  
+  /* Gradients */
+  --gradient: linear-gradient(135deg, rgba(30, 27, 75, 0.9) 40%, rgba(124, 58, 237, 0.8) 100%);
+  
+  /* Text */
+  --text-white: #ffffff;
+  --text-gray: rgba(255, 255, 255, 0.9);
+  --text-muted: rgba(255, 255, 255, 0.7);
+  
+  /* Backgrounds */
+  --bg-glass: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.15);
+  
+  /* Shadows */
+  --shadow: rgba(30, 27, 75, 0.3);
+  --shadow-purple: rgba(124, 58, 237, 0.15);
+  
+  /* Spacing */
+  --xs: 4px;
+  --sm: 8px;
+  --md: 16px;
+  --lg: 24px;
+  --xl: 32px;
+  
+  /* Effects */
+  --radius: 16px;
+  --blur: blur(28px);
+  --transition: 0.2s ease-out;
+  
+  /* Layout */
+  --sidebar: 250px;
+  --font: 'Poppins', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--gradient);
+  min-height: 100vh;
+  color: var(--text-white);
+} 
+ 
