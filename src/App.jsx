@@ -1,16 +1,17 @@
- 
 import './App.css' 
- 
- import ContentCard from './components/ContentCard'
+
 import Layout from './layouts/Layout'
 import Content from './pages/Content'
- 
+const loading = false;
 function App() {  
+   
   return (
     <>
- 
-     <Layout />
-     <Content />
+   {loading ? <div>Loading...</div> : (
+     <Layout>
+      <Content />
+     </Layout>
+   )}
     
     </>
   )
