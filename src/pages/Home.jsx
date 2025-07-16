@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import styled from 'styled-components';
 import ContentCard from '../components/ContentCard';
+import CardModal from '../components/CardModal';
+import { useTheme } from '../context/ThemeContext';
 
 const CardGrid = styled.div`
   display: grid;
@@ -13,9 +15,27 @@ const CardGrid = styled.div`
   padding: 2rem 0;
 `;
 
+const AddButton = styled.button`
+  background: var(--accent);
+  color: var(--text-white);
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 2rem auto 0 auto;
+  display: block;
+  transition: background 0.2s;
+  &:hover {
+    background: var(--primary);
+  }
+`;
+
 const Home = () => {
-  // Example card data
-  const cards = [
+  const { theme } = useTheme();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [cards, setCards] = useState([
     {
       type: 'Social',
       title: 'Instagram Post',
@@ -43,14 +63,35 @@ const Home = () => {
       scheduledDate: '2024-06-03',
       status: 'In Progress',
     },
-  ];
+  ]);
+
+  // useCallback for a memoized handler (example)
+  const handleCardClick = useCallback((title) => {
+    alert(`Clicked card: ${title}`);
+  }, []);
+
+  // useCallback for adding a card (state lifting)
+  const handleAddCard = useCallback((card) => {
+    setCards((prev) => [...prev, card]);
+  }, []);
+
+  // useEffect to log theme changes
+  useEffect(() => {
+    console.log('Theme changed:', theme);
+  }, [theme]);
 
   return (
-    <CardGrid>
-      {cards.map((card, idx) => (
-        <ContentCard key={idx} {...card} />
-      ))}
-    </CardGrid>
+    <>
+      <AddButton onClick={() => setModalOpen(true)}>+ Add New Card</AddButton>
+      <CardModal open={modalOpen} onClose={() => setModalOpen(false)} onAddCard={handleAddCard} />
+      <CardGrid>
+        {cards.map((card, idx) => (
+          <div key={idx} onClick={() => handleCardClick(card.title)}>
+            <ContentCard {...card} />
+          </div>
+        ))}
+      </CardGrid>
+    </>
   );
 };
 

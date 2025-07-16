@@ -14,19 +14,17 @@ const SidebarContainer = styled.div`
   top: 0;
   left: 0;
   z-index: 1200;
-  backdrop-filter: var(--blur) saturate(180%);
+  backdrop-filter: blur(24px) saturate(160%);
   border-right: 2px solid var(--border);
   box-shadow: 8px 0 32px 0 var(--shadow);
   opacity: 0.97;
   transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  /* Hide scrollbar */
   overflow: hidden;
-
   @media (max-width: 768px) {
     width: 80vw;
     max-width: 320px;
     transform: translateX(-100%);
-    ${(props) => props.isMobile && css`
+    ${(props) => props.$isMobile && css`
       transform: translateX(0);
     `}
   }
@@ -35,7 +33,7 @@ const SidebarContainer = styled.div`
 const Overlay = styled.div`
   display: none;
   @media (max-width: 768px) {
-    display: ${(props) => (props.isMobile ? 'block' : 'none')};
+    display: ${(props) => (props.$isMobile ? 'block' : 'none')};
     position: fixed;
     top: 0;
     left: 0;
@@ -62,39 +60,12 @@ const CloseButton = styled.button`
     margin-left: auto;
   }
 `;
-
-const AvatarContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: var(--xl);
-`;
-
-const Avatar = styled.div`
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #6a82fb, #00d2ff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #fff;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.10);
-  margin-bottom: var(--sm);
-`;
-
-const AvatarName = styled.div`
-  color: var(--text-white);
-  font-size: 1rem;
-  font-weight: 600;
-`;
-
+ 
 const NavList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
+  margin-top: 2.5rem;
 `;
 
 const NavLink = styled.a`
@@ -107,7 +78,6 @@ const NavLink = styled.a`
   border-radius: var(--sm);
   margin-bottom: var(--sm);
   transition: background var(--transition);
-  
   &:hover {
     background: var(--secondary);
   }
@@ -121,15 +91,12 @@ const IconWrapper = styled.span`
 const SideBar = ({ isMobile, onClose }) => {
   return (
     <>
-      <Overlay isMobile={isMobile} onClick={onClose} />
-      <SidebarContainer isMobile={isMobile}>
+      <Overlay $isMobile={isMobile} onClick={onClose} />
+      <SidebarContainer $isMobile={isMobile}>
         <CloseButton onClick={onClose} aria-label="Close sidebar">
           <FiX />
         </CloseButton>
-        <AvatarContainer>
-          <Avatar>SP</Avatar>
-          <AvatarName>Social User</AvatarName>
-        </AvatarContainer>
+      
         <NavList>
           <NavLink href="#">
             <IconWrapper><FiHome /></IconWrapper>

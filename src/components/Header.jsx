@@ -1,11 +1,13 @@
 import React from 'react'
 import styled from 'styled-components'
+import { useTheme } from '../context/ThemeContext'
+import { FiSun, FiMoon } from 'react-icons/fi'
 
 const HeaderContainer = styled.header`
   width: 100%;
   height: 60px;
-  background: rgba(34, 40, 49, 0.98); /* More solid for clarity */
-  color: #fff;
+  background: var(--bg-glass);
+  color: var(--text-white);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -13,11 +15,12 @@ const HeaderContainer = styled.header`
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1300; /* Above sidebar and menu button */
-  box-shadow: 0 2px 12px 0 rgba(108,46,183,0.10) inset, 0 2px 8px 0 rgba(20,24,48,0.10);
+  z-index: 1300;
+  box-shadow: 0 2px 12px 0 var(--shadow-purple), 0 2px 8px 0 var(--shadow);
+  border-bottom: 1.5px solid var(--border);
   opacity: 1;
-  transition: background 0.3s;
-
+  transition: background 0.3s, color 0.3s;
+  backdrop-filter: blur(18px) saturate(160%);
   @media (max-width: 768px) {
     height: 56px;
     padding: 0 1rem;
@@ -27,16 +30,34 @@ const HeaderContainer = styled.header`
 const Title = styled.h1`
   font-size: 1.4rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-white);
   letter-spacing: 1px;
   margin: 0;
 `;
 
+const ThemeToggle = styled.button`
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  &:hover {
+    color: var(--primary);
+  }
+`;
+
 const Header = () => {
+  const { mode, toggleMode } = useTheme();
+
   return (
     <HeaderContainer>
       <Title>Social Planner</Title>
-      {/* You can add user/profile/actions here if needed */}
+      <ThemeToggle onClick={toggleMode} aria-label="Toggle theme">
+        {mode === 'light' ? <FiMoon /> : <FiSun />}
+      </ThemeToggle>
     </HeaderContainer>
   )
 }
