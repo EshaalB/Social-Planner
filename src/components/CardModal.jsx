@@ -1,165 +1,302 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
-import { FiType, FiTag, FiLayers, FiClock, FiCheckCircle } from 'react-icons/fi'
-import { FaRegEdit, FaRegFileAlt } from 'react-icons/fa'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FiX, FiType, FiTag, FiLayers, FiClock, FiCheckCircle, FiFileText, FiEdit3 } from 'react-icons/fi'
 
-const Overlay = styled.div`
+const ModalOverlay = styled(motion.div)`
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 1000;
+  padding: 20px;
 `;
 
-const ModalContainer = styled.div`
-  background: var(--bg-glass);
-  border-radius: 18px;
-  box-shadow: 0 12px 48px 0 var(--shadow-purple);
-  border: 2.5px solid var(--accent);
-  padding: 1rem 3.5rem 1rem 3.5rem;
-  min-width: 540px;
-  max-width: 700px;
-  height: 700px;
-  width: 98vw;
-  color: var(--text-white);
-  backdrop-filter: blur(32px) saturate(180%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  @media (max-width: 800px) {
-    min-width: 0;
-    max-width: 98vw;
-    padding: 1rem 0.5rem 1rem 0.5rem;
-    height: auto;
+const ModalContent = styled(motion.div)`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-large), var(--shadow-glow);
+  padding: 32px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  
+  /* Gradient overlay */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--linearPrimarySecondary);
+    opacity: 0.03;
+    border-radius: var(--radius-xl);
+    pointer-events: none;
   }
+  
+  /* Content above overlay */
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 24px;
+    margin: 20px;
+  }
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
 `;
 
 const ModalTitle = styled.h2`
-  margin-bottom: 1.1rem;
-  color: var(--accent);
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: 1px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  
+  /* Gradient text effect */
+  background: var(--linearPrimaryAccent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
+const CloseButton = styled.button`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--glass-shadow);
+  
+  &:hover {
+    color: var(--text-primary);
+    border-color: var(--border-accent);
+    transform: scale(1.1);
+    box-shadow: var(--shadow-medium);
+  }
 `;
 
 const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`;
+
+const FormRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-gap: 0.7rem 1.2rem;
-  align-items: start;
-  flex: 1;
-  @media (max-width: 700px) {
+  gap: 20px;
+  
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 `;
 
-const FullWidth = styled.div`
-  grid-column: 1 / -1;
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `;
 
-const InputGroup = styled.div`
+const FormLabel = styled.label`
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
-  background: var(--bg-glass);
-  border-radius: 12px;
-  border: 1.5px solid var(--border);
-  padding: 0.6rem 1rem;
-  transition: border 0.2s;
-  box-shadow: 0 2px 12px 0 var(--shadow-purple);
-  &:focus-within {
-    border-color: var(--accent);
-    box-shadow: 0 4px 24px 0 var(--shadow-purple);
-  }
+  gap: 8px;
 `;
 
-const InputIcon = styled.span`
-  color: var(--accent);
-  font-size: 1.2rem;
-  margin-right: 1rem;
+const InputContainer = styled.div`
+  position: relative;
   display: flex;
   align-items: center;
 `;
 
-const Input = styled.input`
-  background: transparent;
-  border: none;
-  color: var(--text-white);
-  font-size: 1rem;
-  flex: 1;
-  outline: none;
-  padding: 0.3rem 0;
+const InputIcon = styled.div`
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  z-index: 1;
+  transition: var(--transition);
 `;
 
-const Select = styled.select`
-  background: transparent;
-  border: none;
-  color: var(--text-white);
-  font-size: 1rem;
-  flex: 1;
-  outline: none;
-  appearance: none;
-  padding-right: 1.5rem;
-  padding-top: 0.3rem;
-  padding-bottom: 0.3rem;
-  option {
-    background: #2d225a;
-    color: #fff;
-    font-size: 1rem;
-    border-radius: var(--radius);
-    padding: 0.5rem 1rem;
+const FormInput = styled.input`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 12px 16px 12px 44px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: var(--transition);
+  width: 100%;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--border-accent);
+    box-shadow: var(--focus-ring);
+  }
+  
+  &:focus + ${InputIcon} {
+    color: var(--color-primary);
+  }
+  
+  &::placeholder {
+    color: var(--text-muted);
   }
 `;
 
-const Label = styled.label`
-  color: var(--text-gray);
-  font-size: 1rem;
-  margin-bottom: 0.15rem;
-  margin-left: 0.25rem;
-  display: block;
-`;
-
-const ButtonRow = styled.div`
-  grid-column: 1 / -1;
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 1.1rem;
-`;
-
-const ModalButton = styled.button`
-  background: linear-gradient(90deg, var(--primary-light), var(--accent) 80%);
-  color: #fff;
-  border: 2px solid var(--primary);
-  border-radius: 12px;
-  padding: 0.7rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: 700;
+const FormSelect = styled.select`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 12px 16px 12px 44px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: var(--transition);
+  width: 100%;
   cursor: pointer;
-  box-shadow: 0 2px 12px 0 var(--shadow-purple);
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s, border 0.2s;
-  &:hover {
-    background: linear-gradient(90deg, var(--accent), var(--primary-light) 80%);
-    color: #fff;
-    box-shadow: 0 4px 24px 0 var(--shadow-purple);
-    border-color: var(--accent);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--border-accent);
+    box-shadow: var(--focus-ring);
   }
-  &:first-child {
-    background: transparent;
-    color: var(--accent);
-    border: 2px solid var(--accent);
-    box-shadow: none;
-    &:hover {
-      background: var(--bg-glass);
-      color: var(--primary);
-      border-color: var(--primary);
-    }
+  
+  option {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 8px;
   }
 `;
 
-const CardModal = ({ open, onClose, onAddCard }) => {
+const FormTextarea = styled.textarea`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 12px 16px 12px 44px;
+  color: var(--text-primary);
+  font-size: 14px;
+  resize: vertical;
+  min-height: 100px;
+  transition: var(--transition);
+  width: 100%;
+  font-family: inherit;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--border-accent);
+    box-shadow: var(--focus-ring);
+  }
+  
+  &::placeholder {
+    color: var(--text-muted);
+  }
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 8px;
+  
+  @media (max-width: 480px) {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+`;
+
+const Button = styled.button`
+  background: ${props => props.primary ? 'var(--linearPrimarySecondary)' : 'var(--glass-bg)'};
+  backdrop-filter: var(--backdrop-blur);
+  color: ${props => props.primary ? 'white' : 'var(--text-secondary)'};
+  border: 1px solid ${props => props.primary ? 'transparent' : 'var(--border-glass)'};
+  border-radius: var(--radius-md);
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  min-width: 100px;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--linearPrimaryAccent);
+    opacity: 0;
+    transition: var(--transition);
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+    ${props => !props.primary && `
+      color: white;
+      border-color: var(--border-accent);
+    `}
+  }
+  
+  ${props => !props.primary && `
+    &:hover::before {
+      opacity: 1;
+    }
+  `}
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
+  
+  @media (max-width: 480px) {
+    width: 100%;
+    justify-content: center;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  color: var(--color-error);
+  font-size: 12px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const CardModal = ({ open, onClose, onAddCard, editCard = null, loading = false }) => {
   const [form, setForm] = useState({
     type: '',
     title: '',
@@ -167,114 +304,303 @@ const CardModal = ({ open, onClose, onAddCard }) => {
     platform: '',
     tags: '',
     scheduledDate: '',
-    status: '',
+    status: 'Draft',
   });
+  
+  const [errors, setErrors] = useState({});
+  const [isDirty, setIsDirty] = useState(false);
 
-  const typeOptions = [
-    '', 'Post', 'Reel', 'Story', 'Video', 'Blog', 'Article', 'Podcast', 'Event', 'Other'
-  ];
-  const platforms = [
-    '', 'Instagram', 'YouTube', 'Medium', 'Twitter', 'Facebook', 'LinkedIn', 'TikTok', 'Pinterest', 'Other'
-  ];
+  // Load form data when editing
+  useEffect(() => {
+    if (editCard) {
+      setForm({
+        type: editCard.type || '',
+        title: editCard.title || '',
+        description: editCard.description || '',
+        platform: editCard.platform || '',
+        tags: editCard.tags || '',
+        scheduledDate: editCard.scheduledDate || '',
+        status: editCard.status || 'Draft',
+      });
+      setIsDirty(false);
+    } else {
+      // Reset form for new content
+      setForm({
+        type: '',
+        title: '',
+        description: '',
+        platform: '',
+        tags: '',
+        scheduledDate: '',
+        status: 'Draft',
+      });
+      setIsDirty(false);
+    }
+    setErrors({});
+  }, [editCard, open]);
 
-  if (!open) return null;
+  const typeOptions = ['Video', 'Blog', 'Social', 'Story', 'Reel', 'Post', 'Article', 'Podcast'];
+  const platformOptions = ['Instagram', 'YouTube', 'Twitter', 'Facebook', 'LinkedIn', 'TikTok', 'Pinterest', 'Medium'];
+  const statusOptions = ['Draft', 'Scheduled', 'Published', 'Archived'];
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!form.title.trim()) newErrors.title = 'Title is required';
+    if (!form.description.trim()) newErrors.description = 'Description is required';
+    if (!form.type) newErrors.type = 'Content type is required';
+    if (!form.platform) newErrors.platform = 'Platform is required';
+    if (!form.status) newErrors.status = 'Status is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm(prev => ({ ...prev, [name]: value }));
+    setIsDirty(true);
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAddCard(form);
-    setForm({ type: '', title: '', description: '', platform: '', tags: '', scheduledDate: '', status: '' });
-    onClose();
+    
+    if (!validateForm()) return;
+    
+    // Create content object
+    const contentData = {
+      ...form,
+      id: editCard?.id || Date.now(),
+      createdAt: editCard?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    onAddCard(contentData);
+  };
+
+  const handleClose = () => {
+    if (isDirty && !loading) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to close?')) {
+        onClose();
+      }
+    } else {
+      onClose();
+    }
+  };
+
+  const overlayVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 }
+  };
+
+  const modalVariants = {
+    hidden: { 
+      opacity: 0, 
+      scale: 0.8,
+      y: 50
+    },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 25,
+        stiffness: 300
+      }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.8,
+      y: 50,
+      transition: {
+        duration: 0.2
+      }
+    }
   };
 
   return (
-    <Overlay>
-      <ModalContainer>
-        <ModalTitle>Add New Content</ModalTitle>
-        <Form onSubmit={handleSubmit}>
-          {/* Row 1: Type + Platform */}
-          <div>
-            <Label htmlFor="type">Type</Label>
-            <InputGroup>
-              <InputIcon><FiType /></InputIcon>
-              <Select name="type" value={form.type} onChange={handleChange} required>
-                {typeOptions.map((t, i) => (
-                  <option key={i} value={t} disabled={i === 0}>{i === 0 ? 'Select Type' : t}</option>
-                ))}
-              </Select>
-            </InputGroup>
-          </div>
-          <div>
-            <Label htmlFor="platform">Platform</Label>
-            <InputGroup>
-              <InputIcon><FiLayers /></InputIcon>
-              <Select name="platform" value={form.platform} onChange={handleChange} required>
-                {platforms.map((p, i) => (
-                  <option key={i} value={p} disabled={i === 0}>{i === 0 ? 'Select Platform' : p}</option>
-                ))}
-              </Select>
-            </InputGroup>
-          </div>
+    <AnimatePresence>
+      {open && (
+        <ModalOverlay
+          variants={overlayVariants}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+          onClick={(e) => e.target === e.currentTarget && handleClose()}
+        >
+          <ModalContent
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ModalHeader>
+              <ModalTitle>
+                {editCard ? 'Edit Content' : 'Create New Content'}
+              </ModalTitle>
+              <CloseButton onClick={handleClose} disabled={loading}>
+                <FiX size={20} />
+              </CloseButton>
+            </ModalHeader>
 
-          {/* Row 2: Title + Tags */}
-          <div>
-            <Label htmlFor="title">Title</Label>
-            <InputGroup>
-              <InputIcon><FaRegEdit /></InputIcon>
-              <Input name="title" placeholder="Title" value={form.title} onChange={handleChange} required />
-            </InputGroup>
-          </div>
-          <div>
-            <Label htmlFor="tags">Tags</Label>
-            <InputGroup>
-              <InputIcon><FiTag /></InputIcon>
-              <Input name="tags" placeholder="Tags (comma separated)" value={form.tags} onChange={handleChange} required />
-            </InputGroup>
-          </div>
+            <Form onSubmit={handleSubmit}>
+              <FormRow>
+                <FormGroup>
+                  <FormLabel>
+                    <FiType size={16} />
+                    Content Type
+                  </FormLabel>
+                  <InputContainer>
+                    <FormSelect
+                      name="type"
+                      value={form.type}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select type...</option>
+                      {typeOptions.map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </FormSelect>
+                    <InputIcon><FiType size={16} /></InputIcon>
+                  </InputContainer>
+                  {errors.type && <ErrorMessage>{errors.type}</ErrorMessage>}
+                </FormGroup>
 
-          {/* Row 3: Description (full width) */}
-          <FullWidth>
-            <Label htmlFor="description">Description</Label>
-            <InputGroup>
-              <InputIcon><FaRegFileAlt /></InputIcon>
-              <Input name="description" placeholder="Description" value={form.description} onChange={handleChange} required />
-            </InputGroup>
-          </FullWidth>
+                <FormGroup>
+                  <FormLabel>
+                    <FiLayers size={16} />
+                    Platform
+                  </FormLabel>
+                  <InputContainer>
+                    <FormSelect
+                      name="platform"
+                      value={form.platform}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select platform...</option>
+                      {platformOptions.map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </FormSelect>
+                    <InputIcon><FiLayers size={16} /></InputIcon>
+                  </InputContainer>
+                  {errors.platform && <ErrorMessage>{errors.platform}</ErrorMessage>}
+                </FormGroup>
+              </FormRow>
 
-          {/* Row 4: Scheduled Date + Status */}
-          <div>
-            <Label htmlFor="scheduledDate">Scheduled Date & Time</Label>
-            <InputGroup>
-              <InputIcon><FiClock /></InputIcon>
-              <Input name="scheduledDate" type="datetime-local" value={form.scheduledDate} onChange={handleChange} required />
-            </InputGroup>
-          </div>
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <InputGroup>
-              <InputIcon><FiCheckCircle /></InputIcon>
-              <Select name="status" value={form.status} onChange={handleChange} required>
-                <option value="" disabled>Status</option>
-                <option value="Scheduled">Scheduled</option>
-                <option value="Draft">Draft</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-              </Select>
-            </InputGroup>
-          </div>
+              <FormGroup>
+                <FormLabel>
+                  <FiEdit3 size={16} />
+                  Title
+                </FormLabel>
+                <InputContainer>
+                  <FormInput
+                    name="title"
+                    placeholder="Enter content title..."
+                    value={form.title}
+                    onChange={handleChange}
+                    required
+                  />
+                  <InputIcon><FiEdit3 size={16} /></InputIcon>
+                </InputContainer>
+                {errors.title && <ErrorMessage>{errors.title}</ErrorMessage>}
+              </FormGroup>
 
-          {/* Row 5: Buttons (full width) */}
-          <ButtonRow>
-            <ModalButton type="button" onClick={onClose}>Cancel</ModalButton>
-            <ModalButton type="submit">Add</ModalButton>
-          </ButtonRow>
-        </Form>
-      </ModalContainer>
-    </Overlay>
+              <FormGroup>
+                <FormLabel>
+                  <FiFileText size={16} />
+                  Description
+                </FormLabel>
+                <InputContainer>
+                  <FormTextarea
+                    name="description"
+                    placeholder="Describe your content..."
+                    value={form.description}
+                    onChange={handleChange}
+                    required
+                  />
+                  <InputIcon><FiFileText size={16} /></InputIcon>
+                </InputContainer>
+                {errors.description && <ErrorMessage>{errors.description}</ErrorMessage>}
+              </FormGroup>
+
+              <FormRow>
+                <FormGroup>
+                  <FormLabel>
+                    <FiTag size={16} />
+                    Tags
+                  </FormLabel>
+                  <InputContainer>
+                    <FormInput
+                      name="tags"
+                      placeholder="marketing, social, trending"
+                      value={form.tags}
+                      onChange={handleChange}
+                    />
+                    <InputIcon><FiTag size={16} /></InputIcon>
+                  </InputContainer>
+                </FormGroup>
+
+                <FormGroup>
+                  <FormLabel>
+                    <FiCheckCircle size={16} />
+                    Status
+                  </FormLabel>
+                  <InputContainer>
+                    <FormSelect
+                      name="status"
+                      value={form.status}
+                      onChange={handleChange}
+                      required
+                    >
+                      {statusOptions.map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </FormSelect>
+                    <InputIcon><FiCheckCircle size={16} /></InputIcon>
+                  </InputContainer>
+                  {errors.status && <ErrorMessage>{errors.status}</ErrorMessage>}
+                </FormGroup>
+              </FormRow>
+
+              <FormGroup>
+                <FormLabel>
+                  <FiClock size={16} />
+                  Schedule Date & Time
+                </FormLabel>
+                <InputContainer>
+                  <FormInput
+                    name="scheduledDate"
+                    type="datetime-local"
+                    value={form.scheduledDate}
+                    onChange={handleChange}
+                  />
+                  <InputIcon><FiClock size={16} /></InputIcon>
+                </InputContainer>
+              </FormGroup>
+
+              <ButtonGroup>
+                <Button type="button" onClick={handleClose} disabled={loading}>
+                  Cancel
+                </Button>
+                <Button type="submit" primary disabled={loading}>
+                  {loading ? 'Saving...' : editCard ? 'Update Content' : 'Create Content'}
+                </Button>
+              </ButtonGroup>
+            </Form>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+    </AnimatePresence>
   );
 };
 

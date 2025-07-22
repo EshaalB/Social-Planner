@@ -1,190 +1,224 @@
 import React from 'react'
 import styled from 'styled-components'
-import { FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { motion } from 'framer-motion'
+import { FiEdit2, FiTrash2, FiHash } from 'react-icons/fi'
 
-const CardContainer = styled.article`
+const CardContainer = styled(motion.article)`
   position: relative;
-  background: var(--bg-card);
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
   border: 1px solid ${props => props.selected ? 'var(--border-accent)' : 'var(--border-glass)'};
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   box-shadow: ${props => props.selected ? 'var(--shadow-large), var(--shadow-accent-glow)' : 'var(--shadow-card)'};
-  padding: 20px;
-  min-height: 280px;
+  padding: 0;
+  min-height: 350px;
   display: flex;
   flex-direction: column;
   transition: var(--transition);
   cursor: pointer;
   overflow: hidden;
   
-  /* Glass effect overlay */
+  /* Dynamic gradient glow based on content type */
   &::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background: var(--glass-bg);
-    backdrop-filter: var(--backdrop-blur);
-    opacity: ${props => props.selected ? '0.8' : '0.6'};
-    pointer-events: none;
-    z-index: 0;
-  }
-  
-  /* Glow effect on hover */
-  &::after {
-    content: '';
-    position: absolute;
     inset: -2px;
-    background: var(--linearPrimaryAccent);
-    border-radius: var(--radius-lg);
+    background: ${props => {
+      switch (props.contentType) {
+        case 'Video': return 'conic-gradient(from 0deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffecd2, #ff6b6b)';
+        case 'Blog': return 'conic-gradient(from 0deg, #a8edea, #fed6e3, #d299c2, #fef9d3, #a8edea)';
+        case 'Social': return 'conic-gradient(from 0deg, #667eea, #764ba2, #f093fb, #f5576c, #667eea)';
+        default: return 'conic-gradient(from 0deg, var(--primary), var(--accent), var(--secondary), var(--primary))';
+      }
+    }};
+    border-radius: var(--radius-xl);
     opacity: 0;
     transition: var(--transition);
     pointer-events: none;
     z-index: -1;
+    filter: blur(20px);
+    animation: rotate 8s linear infinite;
+  }
+  
+  @keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  &:hover::before {
+    opacity: 0.6;
   }
   
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-8px) scale(1.02);
     box-shadow: var(--shadow-large), var(--shadow-glow);
     border-color: var(--border-accent);
   }
   
-  &:hover::after {
-    opacity: 0.1;
-  }
-  
-  /* Content above glass overlay */
+  /* All content above overlays */
   & > * {
     position: relative;
     z-index: 1;
   }
 `;
 
-const SelectionCheckbox = styled.button`
+const ContentPreview = styled.div`
+  position: relative;
+  height: 120px;
+  background: ${props => {
+    switch (props.type) {
+      case 'Video': return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+      case 'Blog': return 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+      case 'Social': return 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+      default: return 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)';
+    }
+  }};
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Animated background pattern */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, rgba(255,255,255,0.1) 0%, transparent 50%);
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-10px) scale(1.05); }
+  }
+`;
+
+const PreviewIcon = styled.div`
+  font-size: 48px;
+  z-index: 2;
+  animation: pulse 2s infinite;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+`;
+
+const CardHeader = styled.div`
   position: absolute;
   top: 16px;
   left: 16px;
-  width: 20px;
-  height: 20px;
-  border: 2px solid ${props => props.checked ? 'var(--color-accent)' : 'var(--border-primary)'};
-  border-radius: var(--radius-sm);
-  background: ${props => props.checked ? 'var(--linearPrimaryAccent)' : 'var(--glass-bg)'};
-  backdrop-filter: var(--backdrop-blur);
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 3;
+`;
+
+const TypeBadge = styled.div`
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+`;
+
+const QuickActions = styled.div`
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: var(--transition);
+  
+  ${CardContainer}:hover & {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const QuickActionButton = styled.button`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+`;
+
+const SelectionCheckbox = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid ${props => props.checked ? '#00f2fe' : 'rgba(255,255,255,0.5)'};
+  border-radius: 50%;
+  background: ${props => props.checked ? '#00f2fe' : 'rgba(0,0,0,0.7)'};
+  backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: var(--transition);
   z-index: 10;
-  box-shadow: var(--glass-shadow);
   
   &:hover {
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-glow);
-    transform: scale(1.1);
+    transform: scale(1.15);
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.5);
   }
   
   &::after {
     content: '✓';
     color: white;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     opacity: ${props => props.checked ? '1' : '0'};
     transition: var(--transition);
   }
 `;
 
-const CardHeader = styled.header`
+const CardBody = styled.div`
+  padding: 20px;
+  flex: 1;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  margin-top: ${props => props.hasSelection ? '24px' : '0'};
+  flex-direction: column;
 `;
 
-const TypeBadge = styled.span`
-  background: var(--linearPrimarySecondary);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: var(--shadow-soft), var(--shadow-glow);
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimaryAccent);
-    opacity: 0;
-    transition: var(--transition);
-  }
-  
-  &:hover::before {
-    opacity: 1;
-  }
-`;
-
-const CardActions = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-left: auto;
-`;
-
-const ActionButton = styled.button`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  color: var(--text-muted);
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--glass-shadow);
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimaryAccent);
-    opacity: 0;
-    transition: var(--transition);
-  }
-  
-  &:hover {
-    color: white;
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-glow);
-    transform: scale(1.1);
-  }
-  
-  &:hover::before {
-    opacity: 1;
-  }
-`;
-
-const CardTitle = styled.h3`
+const ContentTitle = styled.h3`
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.3;
   color: var(--text-primary);
-  margin-bottom: 12px;
+  margin: 0 0 8px 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `;
 
-const CardDescription = styled.p`
+const ContentDescription = styled.p`
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-secondary);
-  margin-bottom: 16px;
+  margin: 0 0 16px 0;
   flex: 1;
   
   /* Limit to 3 lines */
@@ -194,82 +228,132 @@ const CardDescription = styled.p`
   overflow: hidden;
 `;
 
-const CardMetadata = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
-`;
-
-const BadgeRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-`;
-
-const MetaBadge = styled.span`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  color: var(--text-secondary);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 500;
-  border: 1px solid var(--border-glass);
-  box-shadow: var(--glass-shadow);
-`;
-
-const TagBadge = styled.span`
-  background: var(--linearSecondaryAccent);
-  color: white;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 500;
-  box-shadow: var(--shadow-soft);
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimaryAccent);
-    opacity: 0;
-    transition: var(--transition);
-  }
-  
-  &:hover::before {
-    opacity: 1;
-  }
-`;
-
-const CardFooter = styled.footer`
+const ContentMeta = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 16px;
+  margin-bottom: 16px;
+  padding: 12px 0;
   border-top: 1px solid var(--border-glass);
-  margin-top: auto;
 `;
 
-const StatusBadge = styled.span`
+const PlatformBadge = styled.div`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--border-glass);
+`;
+
+const StatusBadge = styled.div`
   background: ${props => {
     switch (props.status) {
-      case 'Published': return 'var(--color-success)';
-      case 'Scheduled': return 'var(--color-warning)';
-      case 'Draft': return 'var(--text-muted)';
-      default: return 'var(--linearPrimarySecondary)';
+      case 'Published': return '#00f2fe';
+      case 'Scheduled': return '#ffd700';
+      case 'Draft': return '#ff6b6b';
+      default: return 'var(--text-muted)';
     }
   }};
   color: white;
   padding: 6px 12px;
-  border-radius: 20px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  text-transform: capitalize;
-  box-shadow: var(--shadow-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 10px ${props => {
+    switch (props.status) {
+      case 'Published': return 'rgba(0, 242, 254, 0.3)';
+      case 'Scheduled': return 'rgba(255, 215, 0, 0.3)';
+      case 'Draft': return 'rgba(255, 107, 107, 0.3)';
+      default: return 'transparent';
+    }
+  }};
+`;
+
+const TagsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+`;
+
+const Tag = styled.span`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  color: var(--text-secondary);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--border-glass);
+  transition: var(--transition);
+  
+  &:hover {
+    background: var(--linearPrimarySecondary);
+    color: white;
+    border-color: var(--border-accent);
+  }
+`;
+
+const CardFooter = styled.div`
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border-glass);
+`;
+
+const BidSection = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+`;
+
+const CurrentBid = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const BidLabel = styled.div`
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const BidAmount = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+  color: #00f2fe;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+`;
+
+const ActionButton = styled.button`
+  background: ${props => props.primary ? 
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 
+    'var(--glass-bg)'
+  };
+  backdrop-filter: var(--backdrop-blur);
+  color: ${props => props.primary ? 'white' : 'var(--text-secondary)'};
+  border: 1px solid ${props => props.primary ? 'transparent' : 'var(--border-glass)'};
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: var(--transition);
   position: relative;
   overflow: hidden;
   
@@ -282,17 +366,111 @@ const StatusBadge = styled.span`
     transition: var(--transition);
   }
   
-  &:hover::before {
-    opacity: ${props => props.status === 'Draft' ? '0' : '0.3'};
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+    ${props => !props.primary && `
+      color: white;
+      border-color: var(--border-accent);
+    `}
+  }
+  
+  ${props => !props.primary && `
+    &:hover::before {
+      opacity: 1;
+    }
+  `}
+  
+  & > * {
+    position: relative;
+    z-index: 1;
   }
 `;
 
-const DateText = styled.time`
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+const CreatorInfo = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
+
+const CreatorProfile = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const CreatorAvatar = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--linearPrimaryAccent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border: 2px solid var(--border-glass);
+`;
+
+const CreatorName = styled.div`
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+`;
+
+const StatusInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const StatusDot = styled.div`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: ${props => {
+    switch (props.status) {
+      case 'Published': return '#00f2fe';
+      case 'Scheduled': return '#ffd700';
+      case 'Draft': return '#ff6b6b';
+      default: return 'var(--text-muted)';
+    }
+  }};
+  box-shadow: 0 0 8px ${props => {
+    switch (props.status) {
+      case 'Published': return 'rgba(0, 242, 254, 0.5)';
+      case 'Scheduled': return 'rgba(255, 215, 0, 0.5)';
+      case 'Draft': return 'rgba(255, 107, 107, 0.5)';
+      default: return 'transparent';
+    }
+  }};
+  animation: ${props => props.status !== 'Published' ? 'pulse 2s infinite' : 'none'};
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+`;
+
+const DateText = styled.div`
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const getTypeIcon = (type) => {
+  switch (type) {
+    case 'Video': return '🎬';
+    case 'Blog': return '📝';
+    case 'Social': return '📱';
+    default: return '📄';
+  }
+};
+
+
 
 const ContentCard = ({ 
   title, 
@@ -300,7 +478,6 @@ const ContentCard = ({
   platform, 
   type, 
   tags, 
-  scheduledDate, 
   status, 
   onEdit, 
   onDelete,
@@ -309,20 +486,6 @@ const ContentCard = ({
   selectable = false
 }) => {
   const tagArr = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
-  
-  let dateText = '';
-  if (scheduledDate) {
-    const d = new Date(scheduledDate);
-    if (!isNaN(d)) {
-      dateText = d.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-      });
-    } else {
-      dateText = scheduledDate;
-    }
-  }
 
   const handleCardClick = (e) => {
     if (e.target.closest('.card-actions') || e.target.closest('.selection-checkbox')) {
@@ -341,7 +504,45 @@ const ContentCard = ({
   };
 
   return (
-    <CardContainer selected={selected} onClick={handleCardClick}>
+    <CardContainer 
+      selected={selected} 
+      contentType={type}
+      onClick={handleCardClick}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ 
+        y: -8,
+        scale: 1.02,
+        transition: { type: "spring", stiffness: 300, damping: 20 }
+      }}
+    >
+      <ContentPreview type={type}>
+        <PreviewIcon>{getTypeIcon(type)}</PreviewIcon>
+        
+        <CardHeader>
+          <TypeBadge>{type}</TypeBadge>
+          <QuickActions className="card-actions">
+            {onEdit && (
+              <QuickActionButton 
+                aria-label="Edit content" 
+                onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              >
+                <FiEdit2 size={14} />
+              </QuickActionButton>
+            )}
+            {onDelete && (
+              <QuickActionButton 
+                aria-label="Delete content" 
+                onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              >
+                <FiTrash2 size={14} />
+              </QuickActionButton>
+            )}
+          </QuickActions>
+        </CardHeader>
+      </ContentPreview>
+      
       {selectable && (
         <SelectionCheckbox 
           checked={selected} 
@@ -351,49 +552,31 @@ const ContentCard = ({
         />
       )}
       
-      <CardHeader hasSelection={selectable}>
-        <TypeBadge>{type}</TypeBadge>
-        {(onEdit || onDelete) && (
-          <CardActions className="card-actions">
-            {onEdit && (
-              <ActionButton 
-                aria-label="Edit content" 
-                onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              >
-                <FiEdit2 size={14} />
-              </ActionButton>
+                      <CardBody>
+        <ContentTitle>{title}</ContentTitle>
+        <ContentDescription>{description}</ContentDescription>
+        
+        <ContentMeta>
+          <PlatformBadge>{platform || 'Platform'}</PlatformBadge>
+          <StatusBadge status={status}>{status}</StatusBadge>
+        </ContentMeta>
+        
+        {tagArr.length > 0 && (
+          <TagsContainer>
+            {tagArr.slice(0, 4).map((tag, i) => (
+              <Tag key={i}>
+                <FiHash size={8} style={{ marginRight: '2px' }} />
+                {tag}
+              </Tag>
+            ))}
+            {tagArr.length > 4 && (
+              <Tag>+{tagArr.length - 4}</Tag>
             )}
-            {onDelete && (
-              <ActionButton 
-                aria-label="Delete content" 
-                onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              >
-                <FiTrash2 size={14} />
-              </ActionButton>
-            )}
-          </CardActions>
+          </TagsContainer>
         )}
-      </CardHeader>
+        </CardBody>
       
-      <CardTitle>{title}</CardTitle>
-      <CardDescription>{description}</CardDescription>
       
-      <CardMetadata>
-        <BadgeRow>
-          {platform && <MetaBadge>{platform}</MetaBadge>}
-          {tagArr.slice(0, 2).map((tag, i) => (
-            <TagBadge key={i}>{tag}</TagBadge>
-          ))}
-          {tagArr.length > 2 && (
-            <MetaBadge>+{tagArr.length - 2} more</MetaBadge>
-          )}
-        </BadgeRow>
-      </CardMetadata>
-      
-      <CardFooter>
-        <StatusBadge status={status}>{status}</StatusBadge>
-        {dateText && <DateText dateTime={scheduledDate}>{dateText}</DateText>}
-      </CardFooter>
     </CardContainer>
   )
 }

@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import SideBar from '../components/SideBar'
 import Header from '../components/Header'
 import { FiMenu } from 'react-icons/fi'
-
-const SIDEBAR_WIDTH = '80px';
+ 
 
 const LayoutContainer = styled.div`
   display: flex;
@@ -16,13 +15,12 @@ const LayoutContainer = styled.div`
 
 const MainContent = styled.main`
   flex: 1;
-  margin-left: ${SIDEBAR_WIDTH};
   margin-top: var(--header-height);
+  margin-right: 60px;
   padding: 32px 24px;
   background: transparent;
   min-height: calc(100vh - var(--header-height));
   transition: var(--transition);
-  max-width: calc(100vw - ${SIDEBAR_WIDTH});
   box-sizing: border-box;
   overflow-x: hidden;
   position: relative;
@@ -32,7 +30,6 @@ const MainContent = styled.main`
     content: '';
     position: fixed;
     top: var(--header-height);
-    left: ${SIDEBAR_WIDTH};
     right: 0;
     bottom: 0;
     background: var(--glass-bg);
@@ -162,10 +159,9 @@ const Layout = ({ children, title }) => {
   const handleMenuToggle = () => setMobile(!isMobile);
   const handleSidebarClose = () => setMobile(false);
 
-  React.useEffect(() => {
+    useEffect(() => {
     document.documentElement.style.overflowX = 'hidden';
-    document.body.style.overflowX = 'hidden';
-    document.documentElement.style.setProperty('--sidebar-width', SIDEBAR_WIDTH);
+    document.body.style.overflowX = 'hidden'; 
     
     return () => {
       document.documentElement.style.overflowX = '';

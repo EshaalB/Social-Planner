@@ -1,286 +1,529 @@
-import React, { useState, Suspense } from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
+import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import PageLayout from '../layouts/Layout'
-import { FiUpload, FiImage, FiVideo, FiFile, FiGrid, FiList } from 'react-icons/fi'
+import PageHeader from '../components/PageHeader'
 import useStore from '../context/store'
-import { motion, AnimatePresence } from 'framer-motion'
-import ErrorBoundary from '../components/ErrorBoundary'
+import { 
+  FiImage, 
+  FiVideo, 
+  FiEdit3, 
+  FiHash, 
+  FiUpload, 
+  FiPlus,
+  FiArrowRight,
+  FiFolder,
+  FiSearch,
+  FiFilter
+} from 'react-icons/fi'
 
-const AssetsContainer = styled.div`
+const Container = styled.div`
+  min-height: 100vh;
+  padding: 20px;
+  background: var(--bg-primary);
+`;
+
+const QuickActions = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
 `;
 
-const UploadSection = styled.div`
-  background: var(--gradient);
-  backdrop-filter: var(--blur) saturate(180%);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--xl);
-  color: var(--text-white);
-  box-shadow: 8px 8px 32px 0 var(--shadow);
-`;
-
-const UploadArea = styled.div`
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
-  padding: var(--xl);
-  text-align: center;
+const QuickActionButton = styled.button`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--transition);
-  
-  &:hover {
-    border-color: var(--accent);
-  }
-`;
-
-const UploadIcon = styled.div`
-  font-size: 3rem;
-  color: var(--accent);
-  margin-bottom: var(--md);
-`;
-
-const UploadText = styled.p`
-  color: var(--text-gray);
-  font-size: 1.1rem;
-  margin-bottom: var(--sm);
-`;
-
-const ControlsSection = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-`;
-
-const ViewToggle = styled.div`
-  display: flex;
-  gap: 0.5rem;
-`;
-
-const ViewButton = styled.button`
-  background: var(--accent);
-  color: var(--text-white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--sm) var(--md);
-  cursor: pointer;
+  transition: var(--transition);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--linearPrimarySecondary);
+    opacity: 0;
+    transition: var(--transition);
+  }
   
   &:hover {
-    background: var(--accent-hover);
-  }
-`;
-
-const FilterSelect = styled.select`
-  background: var(--bg-glass);
-  color: var(--text-white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--sm) var(--md);
-  cursor: pointer;
-  
-  option {
-    background: var(--bg-glass);
-    color: var(--text-white);
-  }
-`;
-
-const FilterInput = styled.input`
-  background: var(--bg-glass);
-  color: var(--text-white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--sm) var(--md);
-  width: 100%;
-  margin-top: 0.5rem;
-  box-sizing: border-box;
-`;
-
-const AssetsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-`;
-
-const AssetsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-`;
-
-const AssetCard = styled.div`
-  background: var(--gradient);
-  backdrop-filter: var(--blur) saturate(180%);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--md);
-  color: var(--text-white);
-  box-shadow: 8px 8px 32px 0 var(--shadow);
-  cursor: pointer;
-  transition: transform var(--transition);
-  
-  &:hover {
+    color: white;
+    border-color: var(--border-accent);
     transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+  }
+  
+  &:hover::before {
+    opacity: ${props => props.$primary ? '1' : '0.1'};
+  }
+  
+  ${props => props.$primary && `
+    background: var(--linearPrimarySecondary);
+    color: white;
+    border-color: transparent;
+    
+    &:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: var(--shadow-large);
+    }
+  `}
+  
+  & > * {
+    position: relative;
+    z-index: 1;
   }
 `;
 
-const AssetItem = styled.div`
-  background: var(--gradient);
-  backdrop-filter: var(--blur) saturate(180%);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--md);
-  color: var(--text-white);
-  display: flex;
-  align-items: center;
-  gap: var(--md);
+const CategoryGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+`;
+
+const CategoryBlock = styled(motion.div)`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  padding: 28px;
   cursor: pointer;
-  transition: transform var(--transition);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  
+  /* Gradient overlay */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: ${props => props.$gradient || 'var(--linearPrimarySecondary)'};
+    opacity: 0.03;
+    transition: var(--transition);
+  }
   
   &:hover {
-    transform: translateX(4px);
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-large), var(--shadow-glow);
+    border-color: var(--border-accent);
+  }
+  
+  &:hover::before {
+    opacity: 0.08;
+  }
+  
+  /* Content above overlay */
+  & > * {
+    position: relative;
+    z-index: 1;
   }
 `;
 
-const AssetIcon = styled.div`
-  width: 50px;
-  height: 50px;
-  border-radius: var(--radius);
-  background: var(--accent);
+const CategoryHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+`;
+
+const CategoryIcon = styled.div`
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: ${props => props.$bgColor || 'var(--linearPrimarySecondary)'};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  flex-shrink: 0;
+  font-size: 24px;
+  color: white;
+  box-shadow: var(--shadow-medium);
 `;
 
-const AssetInfo = styled.div`
+const CategoryArrow = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: var(--transition);
+  
+  ${CategoryBlock}:hover & {
+    color: var(--color-primary);
+    border-color: var(--border-accent);
+    transform: scale(1.1);
+  }
+`;
+
+const CategoryTitle = styled.h3`
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+  background: var(--linearPrimaryAccent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
+const CategoryDescription = styled.p`
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+`;
+
+const CategoryStats = styled.div`
+  display: flex;
+  gap: 20px;
+  margin-top: auto;
+`;
+
+const StatItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const StatValue = styled.div`
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+`;
+
+const StatLabel = styled.div`
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const RecentSection = styled.div`
+  margin-top: 40px;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 24px 0;
+  background: var(--linearPrimaryAccent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
+const RecentGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+`;
+
+const RecentItem = styled(motion.div)`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--linearPrimarySecondary);
+    opacity: 0;
+    transition: var(--transition);
+  }
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-medium);
+    border-color: var(--border-accent);
+  }
+  
+  &:hover::before {
+    opacity: 0.05;
+  }
+  
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
+`;
+
+const RecentItemHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+`;
+
+const RecentItemIcon = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: ${props => props.$bgColor || 'var(--linearPrimarySecondary)'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+`;
+
+const RecentItemTitle = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
   flex: 1;
 `;
 
-const AssetName = styled.div`
-  font-weight: 600;
-  margin-bottom: 0.25rem;
+const RecentItemMeta = styled.div`
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
 `;
 
-const AssetMeta = styled.div`
-  color: var(--text-gray);
-  font-size: 0.9rem;
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  margin: 40px 0;
+  
+  h3 {
+    font-size: 20px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    background: var(--linearPrimaryAccent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
 `;
-
-const AssetType = styled.span`
-  background: var(--bg-glass);
-  color: var(--accent);
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  margin-left: auto;
-`;
-
-const MemoAssetCard = React.memo(({ asset }) => (
-  <motion.div
-    key={asset.id}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    transition={{ duration: 0.3 }}
-  >
-    <AssetCard>
-      <AssetIcon>{asset.icon}</AssetIcon>
-      <AssetInfo>
-        <AssetName>{asset.name}</AssetName>
-        <AssetMeta>{asset.size} • {asset.date}</AssetMeta>
-      </AssetInfo>
-      <AssetType>{asset.type}</AssetType>
-    </AssetCard>
-  </motion.div>
-))
 
 const Assets = () => {
-  const assets = useStore(s => s.assets)
-  const assetFilter = useStore(s => s.assetFilter)
-  const setAssetFilter = useStore(s => s.setAssetFilter)
-  const [view, setView] = useState('grid')
+  const navigate = useNavigate()
+  const { getAssetStats, getRecentAssets } = useStore()
+  
+  // Get stats and recent items
+  const stats = getAssetStats ? getAssetStats() : {
+    images: { total: 0, recent: 0 },
+    videos: { total: 0, recent: 0 },
+    captions: { total: 0, recent: 0 },
+    hashtags: { total: 0, recent: 0 }
+  }
+  
+  const recentAssets = getRecentAssets ? getRecentAssets(8) : []
 
-  // Filtering logic
-  const filtered = assets.filter(asset => {
-    const typeMatch = assetFilter.type === 'all' || asset.type === assetFilter.type
-    const searchMatch = asset.name.toLowerCase().includes(assetFilter.search.toLowerCase())
-    return typeMatch && searchMatch
-  })
+  const categories = [
+    {
+      id: 'images',
+      title: 'Images',
+      description: 'Photos, graphics, and visual assets for your content',
+      icon: <FiImage />,
+      bgColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      route: '/assets/images',
+      stats: [
+        { value: stats.images.total, label: 'Total' },
+        { value: stats.images.recent, label: 'Recent' }
+      ]
+    },
+    {
+      id: 'videos',
+      title: 'Videos',
+      description: 'Video content, clips, and multimedia assets',
+      icon: <FiVideo />,
+      bgColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      route: '/assets/videos',
+      stats: [
+        { value: stats.videos.total, label: 'Total' },
+        { value: stats.videos.recent, label: 'Recent' }
+      ]
+    },
+    {
+      id: 'captions',
+      title: 'Captions',
+      description: 'Text content, captions, and copy for your posts',
+      icon: <FiEdit3 />,
+      bgColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      route: '/assets/captions',
+      stats: [
+        { value: stats.captions.total, label: 'Total' },
+        { value: stats.captions.recent, label: 'Recent' }
+      ]
+    },
+    {
+      id: 'hashtags',
+      title: 'Hashtags',
+      description: 'Hashtag collections and trending tags',
+      icon: <FiHash />,
+      bgColor: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      route: '/assets/hashtags',
+      stats: [
+        { value: stats.hashtags.total, label: 'Total' },
+        { value: stats.hashtags.recent, label: 'Recent' }
+      ]
+    }
+  ]
+
+  const handleCategoryClick = (route) => {
+    navigate(route)
+  }
+
+  const handleUpload = () => {
+    // TODO: Implement upload functionality
+    console.log('Upload clicked')
+  }
+
+  const handleCreateNew = () => {
+    // TODO: Implement create new asset functionality
+    console.log('Create new clicked')
+  }
+
+  const headerStats = [
+    { value: Object.values(stats).reduce((acc, cat) => acc + cat.total, 0), label: 'Total Assets' },
+    { value: Object.values(stats).reduce((acc, cat) => acc + cat.recent, 0), label: 'Recent' },
+    { value: categories.length, label: 'Categories' },
+    { value: recentAssets.length, label: 'This Week' }
+  ]
+
+  const headerActions = (
+    <QuickActions>
+      <QuickActionButton onClick={handleUpload}>
+        <FiUpload />
+        Upload Files
+      </QuickActionButton>
+      <QuickActionButton $primary onClick={handleCreateNew}>
+        <FiPlus />
+        Create New
+      </QuickActionButton>
+    </QuickActions>
+  )
 
   return (
-    <PageLayout title="Assets">
-      <AssetsContainer>
-        <UploadSection>
-          <UploadArea>
-            <UploadIcon>
-              <FiUpload />
-            </UploadIcon>
-            <UploadText>Click to upload files or drag and drop</UploadText>
-            <UploadText>Supports: Images, Videos, Documents</UploadText>
-          </UploadArea>
-        </UploadSection>
+    <PageLayout>
+      <Container>
+        <PageHeader 
+          title="Asset Management"
+          subtitle="Organize and manage your creative assets across all categories"
+          stats={headerStats}
+          actions={headerActions}
+        />
 
-        <ControlsSection>
-          <ViewToggle>
-            <ViewButton onClick={() => setView('grid')} $active={view === 'grid'}>
-              <FiGrid /> Grid View
-            </ViewButton>
-            <ViewButton onClick={() => setView('list')} $active={view === 'list'}>
-              <FiList /> List View
-            </ViewButton>
-          </ViewToggle>
+        <CategoryGrid>
+          {categories.map((category, index) => (
+            <CategoryBlock
+              key={category.id}
+              $gradient={category.gradient}
+              onClick={() => handleCategoryClick(category.route)}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <CategoryHeader>
+                <CategoryIcon $bgColor={category.bgColor}>
+                  {category.icon}
+                </CategoryIcon>
+                <CategoryArrow>
+                  <FiArrowRight size={16} />
+                </CategoryArrow>
+              </CategoryHeader>
+              
+              <CategoryTitle>{category.title}</CategoryTitle>
+              <CategoryDescription>{category.description}</CategoryDescription>
+              
+              <CategoryStats>
+                {category.stats.map((stat, statIndex) => (
+                  <StatItem key={statIndex}>
+                    <StatValue>{stat.value}</StatValue>
+                    <StatLabel>{stat.label}</StatLabel>
+                  </StatItem>
+                ))}
+              </CategoryStats>
+            </CategoryBlock>
+          ))}
+        </CategoryGrid>
 
-          <FilterSelect value={assetFilter.type} onChange={e => setAssetFilter({ type: e.target.value })}>
-            <option value="all">All Files</option>
-            <option value="image">Images</option>
-            <option value="video">Videos</option>
-            <option value="document">Documents</option>
-          </FilterSelect>
-          <FilterInput
-            type="text"
-            placeholder="Search by name..."
-            value={assetFilter.search}
-            onChange={e => setAssetFilter({ search: e.target.value })}
-          />
-        </ControlsSection>
-
-        {view === 'grid' ? (
-          <AssetsGrid>
-            <AnimatePresence>
-              {filtered.map(asset => <MemoAssetCard key={asset.id} asset={asset} />)}
-            </AnimatePresence>
-          </AssetsGrid>
-        ) : (
-          <AssetsList>
-            <AnimatePresence>
-              {filtered.map(asset => (
-                <motion.div
+        <RecentSection>
+          <SectionTitle>Recent Assets</SectionTitle>
+          
+          {recentAssets.length > 0 ? (
+            <RecentGrid>
+              {recentAssets.map((asset, index) => (
+                <RecentItem
                   key={asset.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <AssetItem>
-                    <AssetIcon>{asset.icon}</AssetIcon>
-                    <AssetInfo>
-                      <AssetName>{asset.name}</AssetName>
-                      <AssetMeta>{asset.size} • {asset.date}</AssetMeta>
-                    </AssetInfo>
-                    <AssetType>{asset.type}</AssetType>
-                  </AssetItem>
-                </motion.div>
+                  <RecentItemHeader>
+                    <RecentItemIcon $bgColor={asset.bgColor}>
+                      {asset.icon}
+                    </RecentItemIcon>
+                    <RecentItemTitle>{asset.name}</RecentItemTitle>
+                  </RecentItemHeader>
+                  <RecentItemMeta>
+                    {asset.type} • {asset.size} • {asset.date}
+                  </RecentItemMeta>
+                </RecentItem>
               ))}
-            </AnimatePresence>
-          </AssetsList>
-        )}
-      </AssetsContainer>
+            </RecentGrid>
+          ) : (
+            <EmptyState>
+              <h3>No recent assets</h3>
+              <p>Start by uploading your first assets or creating new content.</p>
+              <QuickActionButton $primary onClick={handleCreateNew}>
+                <FiPlus />
+                Get Started
+              </QuickActionButton>
+            </EmptyState>
+          )}
+        </RecentSection>
+      </Container>
     </PageLayout>
   )
 }

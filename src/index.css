@@ -178,7 +178,7 @@ body {
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-primary);
-  background: var(--radialPrimarySecondary);
+  background: var(--background);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   position: relative;
@@ -289,15 +289,7 @@ body::before {
   overflow: hidden;
 }
 
-.btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--linearPrimaryAccent);
-  opacity: 0;
-  transition: var(--transition);
-}
-
+ 
 .btn-primary {
   background: var(--linearPrimarySecondary);
   color: white;
@@ -307,15 +299,10 @@ body::before {
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-medium), var(--shadow-accent-glow);
+  color: white;
 }
 
-.btn-primary::before {
-  background: var(--linearPrimaryAccent);
-}
-
-.btn-primary:hover::before {
-  opacity: 1;
-}
+ 
 
 .btn-secondary {
   background: var(--glass-bg);
