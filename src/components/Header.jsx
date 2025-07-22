@@ -211,30 +211,14 @@ const ProfileButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  object-fit: cover;
   color: white;
   cursor: pointer;
   transition: var(--transition);
   box-shadow: var(--shadow-medium), var(--shadow-glow);
   position: relative;
   overflow: hidden;
-  
-  /* Gradient overlay on hover */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimaryAccent);
-    opacity: 0;
-    transition: var(--transition);
-    border-radius: 50%;
-  }
-  
-  /* Icon above overlay */
-  & > * {
-    position: relative;
-    z-index: 1;
-    transition: var(--transition);
-  }
+   
   
   &:hover {
     transform: translateY(-2px) scale(1.05);
@@ -307,7 +291,7 @@ const Header = () => {
           >
             <FiMoon size={16} />
           </ThemeButton>
-        </ThemeToggleContainer>
+        </ThemeToggleContainer> 
       </CenterSection>
       
       <RightSection>

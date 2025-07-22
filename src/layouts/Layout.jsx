@@ -15,7 +15,7 @@ const LayoutContainer = styled.div`
 
 const MainContent = styled.main`
   flex: 1;
-  margin-top: var(--header-height);
+  margin-top: 40px;
   margin-right: 60px;
   padding: 32px 24px;
   background: transparent;

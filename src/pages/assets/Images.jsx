@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '../../layouts/Layout'
 import PageHeader from '../../components/PageHeader'
+import AssetUploader from '../../components/AssetUploader'
 import useStore from '../../context/store'
 import { 
   FiImage, 
@@ -400,6 +401,7 @@ const Images = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
+  const [uploaderOpen, setUploaderOpen] = useState(false);
   
   // Get images from store
   const allImages = getAssetsByType ? getAssetsByType('images') : []
@@ -466,8 +468,8 @@ const Images = () => {
   }
   
   const handleUpload = () => {
-    console.log('Upload images')
-  }
+    setUploaderOpen(true);
+  };
   
   const handleCreateNew = () => {
     console.log('Create new image')
@@ -699,6 +701,7 @@ const Images = () => {
           )}
         </ContentArea>
       </Container>
+      <AssetUploader isOpen={uploaderOpen} onClose={() => setUploaderOpen(false)} assetType="images" />
     </PageLayout>
   )
 }

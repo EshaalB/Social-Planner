@@ -1,61 +1,66 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
-import { FiTrash2, FiEdit3, FiCalendar, FiX, FiCheck } from 'react-icons/fi'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { FiTrash2, FiCopy, FiDownload, FiEdit3, FiX } from 'react-icons/fi'
 
-const BulkToolbar = styled(motion.div)`
+const BulkContainer = styled(motion.div)`
   position: fixed;
-  bottom: 2rem;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--glass);
-  backdrop-filter: var(--blur);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1rem 1.5rem;
-  box-shadow: var(--shadow);
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  padding: 16px 24px;
+  box-shadow: var(--shadow-large), var(--shadow-glow);
+  z-index: 1000;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  z-index: 1000;
-  min-width: 300px;
+  gap: 16px;
+  min-width: 400px;
+  
+  @media (max-width: 480px) {
+    min-width: 300px;
+    padding: 12px 16px;
+    gap: 12px;
+  }
 `;
 
-const SelectedCount = styled.span`
-  color: var(--lux-gold);
-  font-weight: 600;
-  font-size: 0.95rem;
+const SelectionInfo = styled.div`
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
 `;
 
 const BulkActions = styled.div`
   display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
+  gap: 8px;
+  align-items: center;
 `;
 
 const BulkButton = styled.button`
-  background: ${props => props.danger ? 'var(--danger, #ef4444)' : 'var(--primary)'};
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 600;
+  background: ${props => props.$variant === 'danger' ? '#ef4444' : 'var(--glass-bg)'};
+  backdrop-filter: var(--backdrop-blur);
+  color: ${props => props.$variant === 'danger' ? 'white' : 'var(--text-secondary)'};
+  border: 1px solid ${props => props.$variant === 'danger' ? '#ef4444' : 'var(--border-glass)'};
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
+  transition: var(--transition);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
+  gap: 6px;
   
   &:hover {
     transform: translateY(-1px);
-    opacity: 0.9;
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+    box-shadow: var(--shadow-medium);
+    ${props => props.$variant !== 'danger' && `
+      color: var(--text-primary);
+      border-color: var(--border-accent);
+    `}
   }
 `;
 
@@ -64,160 +69,72 @@ const CloseButton = styled.button`
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
   
   &:hover {
-    background: var(--bg-glass);
-    color: var(--text-white);
+    color: var(--text-primary);
+    background: var(--hover-bg);
   }
 `;
 
-const StatusModal = styled(motion.div)`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--glass);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  box-shadow: var(--shadow);
-  z-index: 1001;
-  min-width: 300px;
-`;
-
-const Overlay = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-`;
-
-const ModalTitle = styled.h3`
-  color: var(--lux-gold);
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-`;
-
-const StatusOptions = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-`;
-
-const StatusOption = styled.button`
-  background: var(--bg-glass);
-  border: 1px solid var(--border);
-  color: var(--text-white);
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius);
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s;
-  
-  &:hover {
-    background: var(--primary);
-  }
-`;
-
-const ModalActions = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-`;
-
-const BulkOperations = ({ selectedItems, onBulkDelete, onBulkStatusChange, onClearSelection }) => {
-  const [showStatusModal, setShowStatusModal] = useState(false)
-
-  const handleBulkDelete = () => {
-    if (window.confirm(`Delete ${selectedItems.length} selected items?`)) {
-      onBulkDelete(selectedItems)
-      onClearSelection()
-    }
-  }
-
-  const handleStatusChange = (newStatus) => {
-    onBulkStatusChange(selectedItems, newStatus)
-    setShowStatusModal(false)
-    onClearSelection()
-  }
-
-  if (selectedItems.length === 0) return null
+const BulkOperations = ({ 
+  selectedCount, 
+  onDelete, 
+  onDuplicate, 
+  onExport, 
+  onEdit, 
+  onClose 
+}) => {
+  if (selectedCount === 0) return null;
 
   return (
-    <>
-      <BulkToolbar
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 100, opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <SelectedCount>
-          {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
-        </SelectedCount>
-        
-        <BulkActions>
-          <BulkButton onClick={() => setShowStatusModal(true)}>
-            <FiEdit3 />
-            Change Status
+    <BulkContainer
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
+      <SelectionInfo>
+        {selectedCount} item{selectedCount !== 1 ? 's' : ''} selected
+      </SelectionInfo>
+      
+      <BulkActions>
+        {onEdit && (
+          <BulkButton onClick={onEdit}>
+            <FiEdit3 size={12} />
+            Edit
           </BulkButton>
-          <BulkButton danger onClick={handleBulkDelete}>
-            <FiTrash2 />
+        )}
+        
+        {onDuplicate && (
+          <BulkButton onClick={onDuplicate}>
+            <FiCopy size={12} />
+            Duplicate
+          </BulkButton>
+        )}
+        
+        {onExport && (
+          <BulkButton onClick={onExport}>
+            <FiDownload size={12} />
+            Export
+          </BulkButton>
+        )}
+        
+        {onDelete && (
+          <BulkButton $variant="danger" onClick={onDelete}>
+            <FiTrash2 size={12} />
             Delete
           </BulkButton>
-        </BulkActions>
-        
-        <CloseButton onClick={onClearSelection} aria-label="Clear selection">
-          <FiX />
-        </CloseButton>
-      </BulkToolbar>
-
-      <AnimatePresence>
-        {showStatusModal && (
-          <>
-            <Overlay
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowStatusModal(false)}
-            />
-            <StatusModal
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-            >
-              <ModalTitle>Change Status</ModalTitle>
-              <StatusOptions>
-                <StatusOption onClick={() => handleStatusChange('Draft')}>
-                  Draft
-                </StatusOption>
-                <StatusOption onClick={() => handleStatusChange('Scheduled')}>
-                  Scheduled
-                </StatusOption>
-                <StatusOption onClick={() => handleStatusChange('Published')}>
-                  Published
-                </StatusOption>
-              </StatusOptions>
-              <ModalActions>
-                <BulkButton onClick={() => setShowStatusModal(false)}>
-                  Cancel
-                </BulkButton>
-              </ModalActions>
-            </StatusModal>
-          </>
         )}
-      </AnimatePresence>
-    </>
-  )
-}
+      </BulkActions>
+      
+      <CloseButton onClick={onClose}>
+        <FiX size={16} />
+      </CloseButton>
+    </BulkContainer>
+  );
+};
 
-export default BulkOperations 
+export default BulkOperations; 

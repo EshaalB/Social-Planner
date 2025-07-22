@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { FiBarChart2, FiSettings } from 'react-icons/fi'
+import useStore from '../../context/store'
 
 const AnalyticsContainer = styled.div`
   margin-top: -380px;
@@ -191,23 +192,58 @@ const SummaryItem = styled.div`
 `;
 
 const AnalyticsChart = () => {
-  // Sample data points for the chart
-  const dataPoints = [
-    { x: 10, y: 160 },
-    { x: 60, y: 120 },
-    { x: 110, y: 140 },
-    { x: 160, y: 100 },
-    { x: 210, y: 130 },
-    { x: 260, y: 80 },
-    { x: 310, y: 110 },
-    { x: 360, y: 60 }
-  ];
+  const { contents, getStats } = useStore()
 
-  // Create SVG path from data points
-  const pathData = dataPoints.reduce((path, point, index) => {
-    const command = index === 0 ? 'M' : 'L';
-    return `${path} ${command} ${point.x} ${point.y}`;
-  }, '');
+  // Group content by week (last 8 weeks)
+  const chartData = useMemo(() => {
+    const now = new Date()
+    const weeks = []
+    for (let i = 7; i >= 0; i--) {
+      const start = new Date(now)
+      start.setDate(now.getDate() - now.getDay() - i * 7)
+      const end = new Date(start)
+      end.setDate(start.getDate() + 6)
+      weeks.push({
+        label: `${start.getMonth() + 1}/${start.getDate()}`,
+        start,
+        end,
+        count: 0
+      })
+    }
+    contents.forEach(content => {
+      if (!content.createdAt) return
+      const date = new Date(content.createdAt)
+      for (let i = 0; i < weeks.length; i++) {
+        if (date >= weeks[i].start && date <= weeks[i].end) {
+          weeks[i].count++
+          break
+        }
+      }
+    })
+    return weeks
+  }, [contents])
+
+  // Map to SVG points
+  const maxY = Math.max(...chartData.map(w => w.count), 4)
+  const minY = 0
+  const chartHeight = 160
+  const chartWidth = 360
+  const stepX = chartWidth / (chartData.length - 1)
+  const points = chartData.map((w, i) => ({
+    x: 20 + i * stepX,
+    y: 180 - ((w.count - minY) / (maxY - minY || 1)) * chartHeight
+  }))
+  const pathData = points.reduce((path, point, index) => {
+    const command = index === 0 ? 'M' : 'L'
+    return `${path} ${command} ${point.x} ${point.y}`
+  }, '')
+
+  // Summary stats
+  const stats = getStats()
+  const totalPosts = stats.total
+  // Simulate reach and engagement based on content
+  const reach = (totalPosts * 67 + 8200).toLocaleString()
+  const engagement = Math.min(99, Math.round((stats.published / (stats.total || 1)) * 100 + 10))
 
   return (
     <AnalyticsContainer>
@@ -228,53 +264,42 @@ const AnalyticsChart = () => {
       
       <ChartContainer>
         <YAxisLabels>
-          <div>400</div>
-          <div>300</div>
-          <div>200</div>
-          <div>100</div>
+          <div>{maxY * 2}</div>
+          <div>{Math.round(maxY * 1.5)}</div>
+          <div>{maxY}</div>
+          <div>{Math.round(maxY / 2)}</div>
+          <div>0</div>
         </YAxisLabels>
-        
         <ChartSvg viewBox="0 0 400 200" preserveAspectRatio="none">
-          {/* Grid lines */}
           <defs>
             <pattern id="grid" width="50" height="40" patternUnits="userSpaceOnUse">
               <path d="M 50 0 L 0 0 0 40" fill="none" stroke="var(--border-glass)" strokeWidth="1" opacity="0.3"/>
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
-          
-          {/* Chart line */}
           <ChartPath d={pathData} />
-          
-          {/* Data points */}
-          {dataPoints.map((point, index) => (
-            <ChartDots
-              key={index}
-              cx={point.x}
-              cy={point.y}
-            />
+          {points.map((point, index) => (
+            <ChartDots key={index} cx={point.x} cy={point.y} />
           ))}
         </ChartSvg>
-        
-        <ChartTooltip>203</ChartTooltip>
+        <ChartTooltip>{chartData[chartData.length - 1]?.count || 0} posts</ChartTooltip>
       </ChartContainer>
-      
       <SummarySection>
         <SummaryItem>
           <div className="label">Posts</div>
-          <div className="value">124</div>
+          <div className="value">{totalPosts}</div>
         </SummaryItem>
         <SummaryItem>
           <div className="label">Reach</div>
-          <div className="value">8.2K</div>
+          <div className="value">{reach}</div>
         </SummaryItem>
         <SummaryItem>
           <div className="label">Engagement</div>
-          <div className="value">94%</div>
+          <div className="value">{engagement}%</div>
         </SummaryItem>
       </SummarySection>
     </AnalyticsContainer>
-  );
-};
+  )
+}
 
 export default AnalyticsChart; 

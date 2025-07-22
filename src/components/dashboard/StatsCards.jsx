@@ -1,30 +1,31 @@
 import React from 'react'
 import styled from 'styled-components'
-import { FiTrendingUp, FiClock, FiFile } from 'react-icons/fi'
-import { FiCalendar } from 'react-icons/fi'
+import { FiTrendingUp, FiClock, FiFile, FiCalendar, FiEye, FiTarget } from 'react-icons/fi'
+import { motion } from 'framer-motion'
+import useStore from '../../context/store'
 
 const StatsContainer = styled.div`
-  
   display: flex;
   flex-direction: column;
   gap: 16px;
 `;
 
-const StatCard = styled.div`
+const StatCard = styled(motion.div)`
   background: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-xl);
-  padding: 24px;
-  margin-bottom:20px;
+  padding: 20px;
   box-shadow: var(--shadow-card);
   position: relative;
   overflow: hidden;
   transition: var(--transition);
+  cursor: pointer;
   
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-large), var(--shadow-glow);
+    border-color: var(--border-accent);
   }
   
   /* Gradient overlay */
@@ -46,13 +47,13 @@ const StatHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 `;
 
 const StatLabel = styled.div`
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
@@ -61,21 +62,33 @@ const StatIcon = styled.div`
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--linearPrimaryAccent);
+  background: ${props => props.$gradient || 'var(--linearPrimaryAccent)'};
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 16px;
   box-shadow: var(--shadow-soft);
+  transition: var(--transition);
+  
+  ${StatCard}:hover & {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-medium);
+  }
+`;
+
+const StatContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `;
 
 const StatValue = styled.div`
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 4px;
   letter-spacing: -0.025em;
+  line-height: 1;
   
   /* Gradient text effect */
   background: var(--linearPrimaryAccent);
@@ -84,57 +97,177 @@ const StatValue = styled.div`
   background-clip: text;
 `;
 
+const StatDetail = styled.div`
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+`;
+
 const StatTrend = styled.div`
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
-  color: var(--color-success);
-  font-weight: 500;
+  font-size: 11px;
+  color: ${props => props.$trend === 'up' ? 'var(--color-success)' : props.$trend === 'down' ? 'var(--color-error)' : 'var(--text-muted)'};
+  font-weight: 600;
+  margin-top: 4px;
 `;
 
+const ProgressBar = styled.div`
+  width: 100%;
+  height: 4px;
+  background: var(--glass-bg);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+`;
 
+const ProgressFill = styled.div`
+  height: 100%;
+  background: var(--linearPrimaryAccent);
+  border-radius: 2px;
+  width: ${props => props.$percentage}%;
+  transition: width 0.6s ease-out;
+`;
 
 const StatsCards = () => {
-  const stats = [
+  const { contents, getStats, getAssetStats } = useStore()
+  
+  // Get real stats
+  const contentStats = getStats()
+  const assetStats = getAssetStats ? getAssetStats() : { images: { total: 0 }, videos: { total: 0 }, captions: { total: 0 }, hashtags: { total: 0 } }
+  
+  // Calculate engagement metrics (simulated based on content count)
+  const calculateEngagement = () => {
+    const totalContent = contentStats.total
+    if (totalContent === 0) return 0
+    // Simulate engagement based on published content
+    return Math.min(95, (contentStats.published / totalContent) * 100 + Math.random() * 20)
+  }
+  
+  // Calculate weekly progress
+  const getWeeklyProgress = () => {
+    const today = new Date()
+    const weekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay())
+    const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000)
+    
+    const weeklyContent = contents.filter(content => {
+      if (!content.createdAt) return false
+      const createDate = new Date(content.createdAt)
+      return createDate >= weekStart && createDate < weekEnd
+    }).length
+    
+    // Target: 5 pieces per week
+    return Math.min(100, (weeklyContent / 5) * 100)
+  }
+  
+  // Get upcoming deadlines
+  const getUpcomingDeadlines = () => {
+    const today = new Date()
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+    
+    return contents.filter(content => {
+      if (!content.scheduledDate || content.status === 'Published') return false
+      const scheduleDate = new Date(content.scheduledDate)
+      return scheduleDate >= today && scheduleDate <= nextWeek
+    }).length
+  }
+  
+  const engagement = calculateEngagement()
+  const weeklyProgress = getWeeklyProgress()
+  const upcomingDeadlines = getUpcomingDeadlines()
+  const totalAssets = Object.values(assetStats).reduce((total, cat) => total + cat.total, 0)
+  
+  const statsData = [
     {
-      label: 'Tasks done',
-      value: '2,543',
-      trend: '+12%',
-      icon: <FiTrendingUp />
+      label: 'Total Content',
+      value: contentStats.total,
+      detail: `${contentStats.published} published, ${contentStats.drafts} drafts`,
+      icon: <FiFile />,
+      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      trend: contentStats.total > 0 ? 'up' : null,
+      trendText: contentStats.total > 0 ? '+12% this month' : 'Start creating!',
+      progress: contentStats.total > 0 ? Math.min(100, (contentStats.published / contentStats.total) * 100) : 0
     },
     {
-      label: 'Hours saved',
-      value: '82%',
-      trend: '+5%',
-      icon: <FiClock />
+      label: 'Weekly Progress',
+      value: `${Math.round(weeklyProgress)}%`,
+      detail: 'Goal: 5 pieces per week',
+      icon: <FiTarget />,
+      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      trend: weeklyProgress >= 80 ? 'up' : weeklyProgress >= 40 ? 'neutral' : 'down',
+      trendText: weeklyProgress >= 80 ? 'Excellent!' : weeklyProgress >= 40 ? 'Good pace' : 'Need more content',
+      progress: weeklyProgress
     },
     {
-      label: 'Assets',
-      value: '100',
-      trend: '+5%',
-      icon: <FiFile />
+      label: 'Engagement Rate',
+      value: `${Math.round(engagement)}%`,
+      detail: 'Based on published content',
+      icon: <FiTrendingUp />,
+      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      trend: engagement >= 70 ? 'up' : engagement >= 40 ? 'neutral' : 'down',
+      trendText: engagement >= 70 ? 'Great engagement!' : engagement >= 40 ? 'Growing audience' : 'Room to improve',
+      progress: engagement
+    },
+    {
+      label: 'Assets Library',
+      value: totalAssets,
+      detail: `${assetStats.images.total} images, ${assetStats.videos.total} videos`,
+      icon: <FiEye />,
+      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      trend: totalAssets > 10 ? 'up' : totalAssets > 5 ? 'neutral' : null,
+      trendText: totalAssets > 10 ? 'Rich library!' : totalAssets > 5 ? 'Building up' : 'Add more assets',
+      progress: Math.min(100, (totalAssets / 20) * 100)
+    },
+    {
+      label: 'Upcoming',
+      value: upcomingDeadlines,
+      detail: 'Scheduled for next 7 days',
+      icon: <FiCalendar />,
+      gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+      trend: upcomingDeadlines > 3 ? 'up' : upcomingDeadlines > 0 ? 'neutral' : null,
+      trendText: upcomingDeadlines > 3 ? 'Busy week ahead' : upcomingDeadlines > 0 ? 'Good planning' : 'Plan ahead',
+      progress: Math.min(100, (upcomingDeadlines / 7) * 100)
     }
-
-  ];
-
+  ]
+  
   return (
     <StatsContainer>
-      {stats.map((stat, index) => (
-        <StatCard key={index}>
+      {statsData.map((stat, index) => (
+        <StatCard
+          key={stat.label}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.1 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
           <StatHeader>
             <StatLabel>{stat.label}</StatLabel>
-            <StatIcon>{stat.icon}</StatIcon>
+            <StatIcon $gradient={stat.gradient}>
+              {stat.icon}
+            </StatIcon>
           </StatHeader>
-          <StatValue>{stat.value}</StatValue>
-          <StatTrend>
-            <FiTrendingUp size={12} />
-            {stat.trend}
-          </StatTrend>
+          
+          <StatContent>
+            <StatValue>{stat.value}</StatValue>
+            <StatDetail>{stat.detail}</StatDetail>
+            
+            {stat.trend && (
+              <StatTrend $trend={stat.trend}>
+                <FiTrendingUp size={12} />
+                {stat.trendText}
+              </StatTrend>
+            )}
+            
+            <ProgressBar>
+              <ProgressFill $percentage={stat.progress} />
+            </ProgressBar>
+          </StatContent>
         </StatCard>
       ))}
     </StatsContainer>
-  );
-};
+  )
+}
 
-export default StatsCards; 
+export default StatsCards 

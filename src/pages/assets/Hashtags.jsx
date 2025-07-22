@@ -6,7 +6,7 @@ import PageLayout from '../../layouts/Layout'
 import PageHeader from '../../components/PageHeader'
 import useStore from '../../context/store'
 import { 
-  FiEdit3, 
+  FiHash, 
   FiUpload, 
   FiPlus,
   FiGrid,
@@ -18,10 +18,11 @@ import {
   FiTrash2,
   FiEye,
   FiCalendar,
-  FiType,
+  FiTrendingUp,
   FiArrowLeft,
-  FiMessageCircle,
-  FiBookmark
+  FiBookmark,
+  FiUsers,
+  FiBarChart2
 } from 'react-icons/fi'
 
 const Container = styled.div`
@@ -190,7 +191,7 @@ const ContentArea = styled.div`
 
 const GridView = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
   
   @media (max-width: 768px) {
@@ -205,7 +206,7 @@ const ListView = styled.div`
   gap: 12px;
 `;
 
-const CaptionCard = styled(motion.div)`
+const HashtagCard = styled(motion.div)`
   background: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-glass);
@@ -221,28 +222,58 @@ const CaptionCard = styled(motion.div)`
     border-color: var(--border-accent);
   }
   
-  &:hover .caption-actions {
+  &:hover .hashtag-actions {
     opacity: 1;
   }
 `;
 
-const CaptionHeader = styled.div`
+const HashtagHeader = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 12px;
 `;
 
-const CaptionTitle = styled.h4`
+const HashtagTitle = styled.h4`
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
   line-height: 1.3;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
-const CaptionActions = styled.div`
+const HashtagIcon = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  flex-shrink: 0;
+`;
+
+const TrendingIndicator = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: ${props => 
+    props.$trend === 'rising' ? '#4caf50' :
+    props.$trend === 'falling' ? '#f44336' :
+    '#ffa726'
+  };
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+`;
+
+const HashtagActions = styled.div`
   display: flex;
   gap: 6px;
   opacity: 0;
@@ -271,21 +302,34 @@ const ActionIcon = styled.button`
   }
 `;
 
-const CaptionText = styled.div`
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.5;
+const HashtagGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 16px;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  border-left: 3px solid var(--border-accent);
-  padding-left: 12px;
-  font-style: italic;
 `;
 
-const CaptionMeta = styled.div`
+const HashtagChip = styled.span`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  color: var(--color-primary);
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  
+  &:hover {
+    background: var(--linearPrimarySecondary);
+    color: white;
+    border-color: transparent;
+    transform: scale(1.05);
+  }
+`;
+
+const HashtagMeta = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -296,25 +340,11 @@ const CaptionMeta = styled.div`
   gap: 8px;
 `;
 
-const CharacterCount = styled.span`
+const MetricBadge = styled.span`
   background: ${props => 
-    props.$count > 280 ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)' :
-    props.$count > 200 ? 'linear-gradient(135deg, #ffa726 0%, #ff9800 100%)' :
-    'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
-  };
-  color: white;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 600;
-`;
-
-const PlatformBadge = styled.span`
-  background: ${props => 
-    props.$platform === 'twitter' ? 'linear-gradient(135deg, #1da1f2 0%, #0d8bd1 100%)' :
-    props.$platform === 'instagram' ? 'linear-gradient(135deg, #e1306c 0%, #fd1d1d 100%)' :
-    props.$platform === 'linkedin' ? 'linear-gradient(135deg, #0077b5 0%, #005885 100%)' :
-    props.$platform === 'facebook' ? 'linear-gradient(135deg, #1877f2 0%, #0d65d9 100%)' :
+    props.$type === 'reach' ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' :
+    props.$type === 'engagement' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
+    props.$type === 'posts' ? 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' :
     'var(--linearPrimarySecondary)'
   };
   color: white;
@@ -322,28 +352,12 @@ const PlatformBadge = styled.span`
   border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 600;
-  text-transform: capitalize;
-`;
-
-const ToneBadge = styled.span`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  color: var(--text-secondary);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: capitalize;
-`;
-
-const CaptionTags = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
 `;
 
-const Tag = styled.span`
+const CategoryBadge = styled.span`
   background: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-glass);
@@ -352,6 +366,14 @@ const Tag = styled.span`
   border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 500;
+  text-transform: capitalize;
+`;
+
+const HashtagStats = styled.div`
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
 `;
 
 const ListItem = styled(motion.div)`
@@ -383,6 +405,9 @@ const ListTitle = styled.h4`
   color: var(--text-primary);
   margin: 0;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const ListActions = styled.div`
@@ -390,15 +415,22 @@ const ListActions = styled.div`
   gap: 8px;
 `;
 
-const ListText = styled.div`
-  color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1.4;
+const ListHashtags = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-bottom: 8px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+`;
+
+const ListHashtagChip = styled.span`
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  color: var(--color-primary);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
 `;
 
 const ListMeta = styled.div`
@@ -436,84 +468,88 @@ const EmptyState = styled.div`
   }
 `;
 
-const Captions = () => {
+const Hashtags = () => {
   const navigate = useNavigate()
-  const { getAssetsByType, addCaption } = useStore()
+  const { getAssetsByType, addHashtagSet } = useStore()
   
   // Local state
   const [view, setView] = useState('grid')
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterPlatform, setFilterPlatform] = useState('all')
-  const [filterTone, setFilterTone] = useState('all')
+  const [filterCategory, setFilterCategory] = useState('all')
+  const [filterTrend, setFilterTrend] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
   const [importing, setImporting] = useState(false);
   const fileInputRef = React.useRef(null);
 
-  // Get captions from store
-  const allCaptions = getAssetsByType ? getAssetsByType('captions') : []
+  // Get hashtags from store
+  const allHashtags = getAssetsByType ? getAssetsByType('hashtags') : []
   
   // Sample data for demonstration
-  const sampleCaptions = [
+  const sampleHashtags = [
     {
       id: 1,
-      title: 'Product Launch Post',
-      text: 'Excited to introduce our latest innovation! 🚀 This game-changing product will revolutionize how you work and play. Stay tuned for more updates! #ProductLaunch #Innovation #TechNews',
-      platform: 'twitter',
-      tone: 'exciting',
-      characterCount: 187,
+      title: 'Marketing Campaign Set',
+      hashtags: ['#MarketingTips', '#DigitalMarketing', '#ContentStrategy', '#SocialMedia', '#BusinessGrowth'],
+      category: 'marketing',
+      reach: '2.4M',
+      engagement: '8.2%',
+      posts: '45K',
+      trend: 'rising',
       date: '2024-01-15',
-      tags: ['product', 'launch', 'announcement'],
-      category: 'promotional'
+      description: 'High-performing hashtags for marketing content'
     },
     {
       id: 2,
-      title: 'Behind the Scenes Story',
-      text: 'Take a peek behind the curtain! Our amazing team has been working tirelessly to bring you the best experience possible. Here\'s what goes into making the magic happen...',
-      platform: 'instagram',
-      tone: 'friendly',
-      characterCount: 215,
+      title: 'Tech Innovation Tags',
+      hashtags: ['#TechInnovation', '#AI', '#MachineLearning', '#FutureOfWork', '#Innovation'],
+      category: 'technology',
+      reach: '1.8M',
+      engagement: '6.7%',
+      posts: '32K',
+      trend: 'stable',
       date: '2024-01-14',
-      tags: ['behind-scenes', 'team', 'culture'],
-      category: 'storytelling'
+      description: 'Technology and innovation focused hashtags'
     },
     {
       id: 3,
-      title: 'Professional Update',
-      text: 'Thrilled to share our latest quarterly results and the milestones we\'ve achieved together. Thank you to our incredible team and valued clients for making this success possible.',
-      platform: 'linkedin',
-      tone: 'professional',
-      characterCount: 198,
+      title: 'Lifestyle Content',
+      hashtags: ['#Lifestyle', '#Wellness', '#SelfCare', '#Mindfulness', '#HealthyLiving'],
+      category: 'lifestyle',
+      reach: '3.1M',
+      engagement: '12.4%',
+      posts: '78K',
+      trend: 'rising',
       date: '2024-01-13',
-      tags: ['results', 'milestone', 'team'],
-      category: 'business'
+      description: 'Popular lifestyle and wellness hashtags'
     },
     {
       id: 4,
-      title: 'Quick Social Update',
-      text: 'Just dropped something amazing! Check it out 👆',
-      platform: 'instagram',
-      tone: 'casual',
-      characterCount: 48,
+      title: 'Trending Now',
+      hashtags: ['#Viral', '#Trending', '#MustSee', '#PopularNow', '#Explore'],
+      category: 'trending',
+      reach: '5.2M',
+      engagement: '15.8%',
+      posts: '120K',
+      trend: 'falling',
       date: '2024-01-12',
-      tags: ['quick', 'update', 'casual'],
-      category: 'social'
+      description: 'Currently trending hashtags across platforms'
     }
   ]
   
-  const captions = allCaptions.length > 0 ? allCaptions : sampleCaptions
+  const hashtags = allHashtags.length > 0 ? allHashtags : sampleHashtags
   
   // Filter and search
-  const filteredCaptions = captions.filter(caption => {
-    const matchesSearch = caption.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         caption.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         caption.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesPlatform = filterPlatform === 'all' || caption.platform === filterPlatform
-    const matchesTone = filterTone === 'all' || caption.tone === filterTone
-    return matchesSearch && matchesPlatform && matchesTone
+  const filteredHashtags = hashtags.filter(hashtagSet => {
+    const matchesSearch = hashtagSet.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         hashtagSet.hashtags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         hashtagSet.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = filterCategory === 'all' || hashtagSet.category === filterCategory
+    const matchesTrend = filterTrend === 'all' || hashtagSet.trend === filterTrend
+    return matchesSearch && matchesCategory && matchesTrend
   })
   
-  // Sort captions
-  const sortedCaptions = [...filteredCaptions].sort((a, b) => {
+  // Sort hashtags
+  const sortedHashtags = [...filteredHashtags].sort((a, b) => {
     switch (sortBy) {
       case 'newest':
         return new Date(b.date) - new Date(a.date)
@@ -521,8 +557,10 @@ const Captions = () => {
         return new Date(a.date) - new Date(b.date)
       case 'title':
         return a.title.localeCompare(b.title)
-      case 'length':
-        return b.characterCount - a.characterCount
+      case 'reach':
+        return parseFloat(b.reach) - parseFloat(a.reach)
+      case 'engagement':
+        return parseFloat(b.engagement) - parseFloat(a.engagement)
       default:
         return 0
     }
@@ -551,10 +589,10 @@ const Captions = () => {
           });
         }
         if (Array.isArray(importedData)) {
-          importedData.forEach(item => addCaption(item));
+          importedData.forEach(item => addHashtagSet(item));
         }
       } catch {
-        alert('Error importing captions. Please check the file format.');
+        alert('Error importing hashtags. Please check the file format.');
       }
     };
     if (file.name.endsWith('.json') || file.name.endsWith('.csv')) {
@@ -570,35 +608,37 @@ const Captions = () => {
   };
   
   const handleCreateNew = () => {
-    console.log('Create new caption')
+    console.log('Create new hashtag set')
   }
   
-  const handleCaptionAction = (action, caption) => {
+  const handleHashtagAction = (action, hashtagSet) => {
     if (action === 'copy') {
-      navigator.clipboard.writeText(caption.text)
-      console.log('Copied to clipboard:', caption.title)
+      const hashtagString = hashtagSet.hashtags.join(' ')
+      navigator.clipboard.writeText(hashtagString)
+      console.log('Copied to clipboard:', hashtagSet.title)
     } else {
-      console.log(`${action} for caption:`, caption.title)
+      console.log(`${action} for hashtag set:`, hashtagSet.title)
     }
   }
   
-  const platforms = ['all', 'twitter', 'instagram', 'linkedin', 'facebook', 'tiktok']
-  const tones = ['all', 'professional', 'friendly', 'exciting', 'casual', 'formal']
+  const categories = ['all', 'marketing', 'technology', 'lifestyle', 'business', 'trending']
+  const trends = ['all', 'rising', 'stable', 'falling']
   const sortOptions = [
     { value: 'newest', label: 'Newest First' },
     { value: 'oldest', label: 'Oldest First' },
     { value: 'title', label: 'Title (A-Z)' },
-    { value: 'length', label: 'Character Count' }
+    { value: 'reach', label: 'Reach' },
+    { value: 'engagement', label: 'Engagement' }
   ]
   
-  const totalCharacters = captions.reduce((acc, caption) => acc + caption.characterCount, 0)
-  const averageLength = Math.round(totalCharacters / captions.length) || 0
+  const totalHashtags = hashtags.reduce((acc, set) => acc + set.hashtags.length, 0)
+  const averagePerSet = Math.round(totalHashtags / hashtags.length) || 0
   
   const headerStats = [
-    { value: captions.length, label: 'Total Captions' },
-    { value: filteredCaptions.length, label: 'Filtered' },
-    { value: averageLength, label: 'Avg Length' },
-    { value: new Set(captions.map(cap => cap.platform)).size, label: 'Platforms' }
+    { value: hashtags.length, label: 'Total Sets' },
+    { value: filteredHashtags.length, label: 'Filtered' },
+    { value: totalHashtags, label: 'Total Tags' },
+    { value: averagePerSet, label: 'Avg per Set' }
   ]
   
   const headerActions = (
@@ -616,10 +656,21 @@ const Captions = () => {
       </ActionButton>
       <ActionButton $primary onClick={handleCreateNew}>
         <FiPlus />
-        Create New
+        Create Set
       </ActionButton>
     </div>
   )
+  
+  const getTrendIcon = (trend) => {
+    switch (trend) {
+      case 'rising':
+        return <FiTrendingUp size={10} />
+      case 'falling':
+        return <FiTrendingUp size={10} style={{ transform: 'rotate(180deg)' }} />
+      default:
+        return <FiBarChart2 size={10} />
+    }
+  }
   
   return (
     <PageLayout>
@@ -630,8 +681,8 @@ const Captions = () => {
         </BackButton>
         
         <PageHeader 
-          title="Captions"
-          subtitle="Manage your text content, captions, and copy for all platforms"
+          title="Hashtags"
+          subtitle="Manage your hashtag collections and trending tags"
           stats={headerStats}
           actions={headerActions}
         />
@@ -641,35 +692,35 @@ const Captions = () => {
             <FiSearch size={16} color="var(--text-muted)" />
             <SearchInput
               type="text"
-              placeholder="Search captions..."
+              placeholder="Search hashtags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </SearchGroup>
           
           <FilterGroup>
-            <FiMessageCircle size={16} color="var(--text-muted)" />
+            <FiBookmark size={16} color="var(--text-muted)" />
             <FilterSelect
-              value={filterPlatform}
-              onChange={(e) => setFilterPlatform(e.target.value)}
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
             >
-              {platforms.map(platform => (
-                <option key={platform} value={platform}>
-                  {platform === 'all' ? 'All Platforms' : platform.charAt(0).toUpperCase() + platform.slice(1)}
+              {categories.map(category => (
+                <option key={category} value={category}>
+                  {category === 'all' ? 'All Categories' : category.charAt(0).toUpperCase() + category.slice(1)}
                 </option>
               ))}
             </FilterSelect>
           </FilterGroup>
           
           <FilterGroup>
-            <FiType size={16} color="var(--text-muted)" />
+            <FiTrendingUp size={16} color="var(--text-muted)" />
             <FilterSelect
-              value={filterTone}
-              onChange={(e) => setFilterTone(e.target.value)}
+              value={filterTrend}
+              onChange={(e) => setFilterTrend(e.target.value)}
             >
-              {tones.map(tone => (
-                <option key={tone} value={tone}>
-                  {tone === 'all' ? 'All Tones' : tone.charAt(0).toUpperCase() + tone.slice(1)}
+              {trends.map(trend => (
+                <option key={trend} value={trend}>
+                  {trend === 'all' ? 'All Trends' : trend.charAt(0).toUpperCase() + trend.slice(1)}
                 </option>
               ))}
             </FilterSelect>
@@ -708,18 +759,18 @@ const Captions = () => {
         </ToolbarRow>
         
         <ResultsInfo>
-          <span>Showing {sortedCaptions.length} of {captions.length} captions</span>
+          <span>Showing {sortedHashtags.length} of {hashtags.length} hashtag sets</span>
           <span>{view === 'grid' ? 'Grid View' : 'List View'}</span>
         </ResultsInfo>
         
         <ContentArea>
-          {sortedCaptions.length > 0 ? (
+          {sortedHashtags.length > 0 ? (
             view === 'grid' ? (
               <GridView>
                 <AnimatePresence mode="popLayout">
-                  {sortedCaptions.map((caption, index) => (
-                    <CaptionCard
-                      key={caption.id}
+                  {sortedHashtags.map((hashtagSet, index) => (
+                    <HashtagCard
+                      key={hashtagSet.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
@@ -727,89 +778,125 @@ const Captions = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <CaptionHeader>
-                        <CaptionTitle>{caption.title}</CaptionTitle>
-                        <CaptionActions className="caption-actions">
-                          <ActionIcon onClick={() => handleCaptionAction('view', caption)}>
+                      <HashtagHeader>
+                        <HashtagTitle>
+                          <HashtagIcon>
+                            <FiHash />
+                          </HashtagIcon>
+                          {hashtagSet.title}
+                          <TrendingIndicator $trend={hashtagSet.trend}>
+                            {getTrendIcon(hashtagSet.trend)}
+                            {hashtagSet.trend}
+                          </TrendingIndicator>
+                        </HashtagTitle>
+                        <HashtagActions className="hashtag-actions">
+                          <ActionIcon onClick={() => handleHashtagAction('view', hashtagSet)}>
                             <FiEye size={12} />
                           </ActionIcon>
-                          <ActionIcon onClick={() => handleCaptionAction('copy', caption)}>
+                          <ActionIcon onClick={() => handleHashtagAction('copy', hashtagSet)}>
                             <FiCopy size={12} />
                           </ActionIcon>
-                          <ActionIcon onClick={() => handleCaptionAction('edit', caption)}>
-                            <FiEdit3 size={12} />
+                          <ActionIcon onClick={() => handleHashtagAction('edit', hashtagSet)}>
+                            <FiHash size={12} />
                           </ActionIcon>
-                          <ActionIcon onClick={() => handleCaptionAction('delete', caption)}>
+                          <ActionIcon onClick={() => handleHashtagAction('delete', hashtagSet)}>
                             <FiTrash2 size={12} />
                           </ActionIcon>
-                        </CaptionActions>
-                      </CaptionHeader>
+                        </HashtagActions>
+                      </HashtagHeader>
                       
-                      <CaptionText>{caption.text}</CaptionText>
-                      
-                      <CaptionMeta>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <CharacterCount $count={caption.characterCount}>
-                            {caption.characterCount} chars
-                          </CharacterCount>
-                          <PlatformBadge $platform={caption.platform}>
-                            {caption.platform}
-                          </PlatformBadge>
-                          <ToneBadge>{caption.tone}</ToneBadge>
-                        </div>
-                        <span>{caption.date}</span>
-                      </CaptionMeta>
-                      
-                      <CaptionTags>
-                        {caption.tags.map((tag, tagIndex) => (
-                          <Tag key={tagIndex}>#{tag}</Tag>
+                      <HashtagGrid>
+                        {hashtagSet.hashtags.map((hashtag, hashtagIndex) => (
+                          <HashtagChip key={hashtagIndex}>
+                            {hashtag}
+                          </HashtagChip>
                         ))}
-                      </CaptionTags>
-                    </CaptionCard>
+                      </HashtagGrid>
+                      
+                      <HashtagMeta>
+                        <CategoryBadge>{hashtagSet.category}</CategoryBadge>
+                        <span>{hashtagSet.date}</span>
+                      </HashtagMeta>
+                      
+                      <HashtagStats>
+                        <MetricBadge $type="reach">
+                          <FiUsers size={10} />
+                          {hashtagSet.reach}
+                        </MetricBadge>
+                        <MetricBadge $type="engagement">
+                          <FiBarChart2 size={10} />
+                          {hashtagSet.engagement}
+                        </MetricBadge>
+                        <MetricBadge $type="posts">
+                          <FiHash size={10} />
+                          {hashtagSet.posts}
+                        </MetricBadge>
+                      </HashtagStats>
+                    </HashtagCard>
                   ))}
                 </AnimatePresence>
               </GridView>
             ) : (
               <ListView>
                 <AnimatePresence mode="popLayout">
-                  {sortedCaptions.map((caption, index) => (
+                  {sortedHashtags.map((hashtagSet, index) => (
                     <ListItem
-                      key={caption.id}
+                      key={hashtagSet.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
                       transition={{ duration: 0.3, delay: index * 0.03 }}
                     >
                       <ListHeader>
-                        <ListTitle>{caption.title}</ListTitle>
+                        <ListTitle>
+                          <HashtagIcon>
+                            <FiHash />
+                          </HashtagIcon>
+                          {hashtagSet.title}
+                          <TrendingIndicator $trend={hashtagSet.trend}>
+                            {getTrendIcon(hashtagSet.trend)}
+                            {hashtagSet.trend}
+                          </TrendingIndicator>
+                        </ListTitle>
                         <ListActions>
-                          <ActionIcon onClick={() => handleCaptionAction('view', caption)}>
+                          <ActionIcon onClick={() => handleHashtagAction('view', hashtagSet)}>
                             <FiEye size={12} />
                           </ActionIcon>
-                          <ActionIcon onClick={() => handleCaptionAction('copy', caption)}>
+                          <ActionIcon onClick={() => handleHashtagAction('copy', hashtagSet)}>
                             <FiCopy size={12} />
                           </ActionIcon>
-                          <ActionIcon onClick={() => handleCaptionAction('edit', caption)}>
-                            <FiEdit3 size={12} />
+                          <ActionIcon onClick={() => handleHashtagAction('edit', hashtagSet)}>
+                            <FiHash size={12} />
                           </ActionIcon>
-                          <ActionIcon onClick={() => handleCaptionAction('delete', caption)}>
+                          <ActionIcon onClick={() => handleHashtagAction('delete', hashtagSet)}>
                             <FiTrash2 size={12} />
                           </ActionIcon>
                         </ListActions>
                       </ListHeader>
                       
-                      <ListText>{caption.text}</ListText>
+                      <ListHashtags>
+                        {hashtagSet.hashtags.slice(0, 8).map((hashtag, hashtagIndex) => (
+                          <ListHashtagChip key={hashtagIndex}>
+                            {hashtag}
+                          </ListHashtagChip>
+                        ))}
+                        {hashtagSet.hashtags.length > 8 && (
+                          <ListHashtagChip>+{hashtagSet.hashtags.length - 8} more</ListHashtagChip>
+                        )}
+                      </ListHashtags>
                       
                       <ListMeta>
-                        <CharacterCount $count={caption.characterCount}>
-                          {caption.characterCount} chars
-                        </CharacterCount>
-                        <PlatformBadge $platform={caption.platform}>
-                          {caption.platform}
-                        </PlatformBadge>
-                        <ToneBadge>{caption.tone}</ToneBadge>
+                        <CategoryBadge>{hashtagSet.category}</CategoryBadge>
+                        <MetricBadge $type="reach">
+                          <FiUsers size={10} />
+                          {hashtagSet.reach}
+                        </MetricBadge>
+                        <MetricBadge $type="engagement">
+                          <FiBarChart2 size={10} />
+                          {hashtagSet.engagement}
+                        </MetricBadge>
                         <span>•</span>
-                        <span>{caption.date}</span>
+                        <span>{hashtagSet.date}</span>
                       </ListMeta>
                     </ListItem>
                   ))}
@@ -818,17 +905,17 @@ const Captions = () => {
             )
           ) : (
             <EmptyState>
-              <h3>No captions found</h3>
+              <h3>No hashtag sets found</h3>
               <p>
-                {searchTerm || filterPlatform !== 'all' || filterTone !== 'all'
+                {searchTerm || filterCategory !== 'all' || filterTrend !== 'all'
                   ? 'Try adjusting your search or filter criteria.'
-                  : 'Create your first caption to get started.'
+                  : 'Create your first hashtag collection to get started.'
                 }
               </p>
-              {!searchTerm && filterPlatform === 'all' && filterTone === 'all' && (
+              {!searchTerm && filterCategory === 'all' && filterTrend === 'all' && (
                 <ActionButton $primary onClick={handleCreateNew}>
                   <FiPlus />
-                  Create Caption
+                  Create Hashtag Set
                 </ActionButton>
               )}
             </EmptyState>
@@ -839,4 +926,4 @@ const Captions = () => {
   )
 }
 
-export default Captions 
+export default Hashtags 

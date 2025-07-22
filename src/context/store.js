@@ -235,6 +235,100 @@ const useStore = create(
       // Auto-save indicator
       autoSaving: false,
       setAutoSaving: (saving) => set({ autoSaving: saving }),
+      
+      // Asset Management
+      assets: {
+        images: [],
+        videos: [],
+        captions: [],
+        hashtags: []
+      },
+      
+      // Asset Actions
+      getAssetsByType: (type) => {
+        return get().assets[type] || []
+      },
+      
+      getAssetStats: () => {
+        const assets = get().assets
+        return {
+          images: { 
+            total: assets.images.length, 
+            recent: assets.images.filter(img => 
+              new Date(img.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+            ).length 
+          },
+          videos: { 
+            total: assets.videos.length, 
+            recent: assets.videos.filter(vid => 
+              new Date(vid.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+            ).length 
+          },
+          captions: { 
+            total: assets.captions.length, 
+            recent: assets.captions.filter(cap => 
+              new Date(cap.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+            ).length 
+          },
+          hashtags: { 
+            total: assets.hashtags.length, 
+            recent: assets.hashtags.filter(hash => 
+              new Date(hash.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+            ).length 
+          }
+        }
+      },
+      
+      getRecentAssets: (limit = 10) => {
+        const assets = get().assets
+        const allAssets = [
+          ...assets.images.map(item => ({ ...item, type: 'image', icon: '🖼️', bgColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' })),
+          ...assets.videos.map(item => ({ ...item, type: 'video', icon: '🎥', bgColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' })),
+          ...assets.captions.map(item => ({ ...item, type: 'caption', icon: '📝', bgColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' })),
+          ...assets.hashtags.map(item => ({ ...item, type: 'hashtag', icon: '#️⃣', bgColor: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }))
+        ]
+        
+        return allAssets
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, limit)
+      },
+      
+      addAsset: (type, asset) => {
+        const newAsset = {
+          ...asset,
+          id: asset.id || Date.now(),
+          date: asset.date || new Date().toISOString().split('T')[0],
+        }
+        
+        set((state) => ({
+          assets: {
+            ...state.assets,
+            [type]: [...state.assets[type], newAsset]
+          }
+        }))
+        
+        return newAsset
+      },
+      
+      updateAsset: (type, id, updates) => {
+        set((state) => ({
+          assets: {
+            ...state.assets,
+            [type]: state.assets[type].map(asset =>
+              asset.id === id ? { ...asset, ...updates } : asset
+            )
+          }
+        }))
+      },
+      
+      deleteAsset: (type, id) => {
+        set((state) => ({
+          assets: {
+            ...state.assets,
+            [type]: state.assets[type].filter(asset => asset.id !== id)
+          }
+        }))
+      },
     }),
     {
       name: 'social-planner-storage',
@@ -243,6 +337,7 @@ const useStore = create(
         contents: state.contents,
         theme: state.theme,
         sidebarCollapsed: state.sidebarCollapsed,
+        assets: state.assets, // Added assets to persistence
       }),
     }
   )

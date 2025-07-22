@@ -396,14 +396,13 @@ const SideBar = ({ isMobile, onClose }) => {
             onMouseEnter={() => handleMouseEnter('settings')}
             onMouseLeave={handleMouseLeave}
           >
-            <SettingsButton 
-              onClick={() => {
-                window.location.href = '/settings';
-                if (isMobile && onClose) onClose();
-              }}
+            <NavItem
+              to="/settings"
+              isActive={location.pathname === '/settings'}
+              onClick={() => isMobile && onClose?.()}
             >
               <FiSettings size={20} />
-            </SettingsButton>
+            </NavItem>
             <Tooltip show={hoveredItem === 'settings'}>
               Settings
             </Tooltip>

@@ -1,13 +1,14 @@
 import React from 'react'
 import styled from 'styled-components'
-import { FiCoffee, FiSun, FiZap } from 'react-icons/fi'
+import { FiCoffee, FiSun, FiZap, FiTrendingUp, FiCalendar } from 'react-icons/fi'
+import useStore from '../../context/store'
 
 const WelcomeContainer = styled.div`
   background: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-xl);
-  padding: 20px 24px;
+  padding: 24px 28px;
   height: 200px;
   width: 500px;
   box-shadow: var(--shadow-card);
@@ -41,7 +42,23 @@ const WelcomeContainer = styled.div`
 const WelcomeHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+`;
+
+const WelcomeContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+`;
+
+const TimeInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
 `;
 
 const WelcomeIcon = styled.div`
@@ -68,7 +85,7 @@ const WelcomeTitle = styled.h1`
   font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 4px 0;
+  margin: 0;
   letter-spacing: -0.025em;
   line-height: 1.2;
   
@@ -90,118 +107,127 @@ const WelcomeSubtitle = styled.p`
   line-height: 1.5;
 `;
 
-const QuickActions = styled.div`
+const StatsRow = styled.div`
   display: flex;
-  gap: 12px;
-  margin-top: auto;
+  gap: 20px;
+  margin-top: 16px;
+  align-items: center;
+`;
+
+const QuickStat = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
   
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 8px;
+  .icon {
+    color: var(--color-primary);
   }
 `;
 
-const ActionButton = styled.button`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: var(--glass-shadow);
-  position: relative;
-  overflow: hidden;
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimaryAccent);
-    opacity: 0;
-    transition: var(--transition);
-  }
-  
-  /* Icon and text above overlay */
-  & > * {
-    position: relative;
-    z-index: 1;
-    transition: var(--transition);
-  }
-  
-  &:hover {
-    color: white;
-    border-color: var(--border-accent);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-medium), var(--shadow-glow);
-  }
-  
-  &:hover::before {
-    opacity: 1;
-  }
-  
-  &:hover > * {
-    transform: scale(1.05);
-  }
+const MotivationText = styled.div`
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 8px;
 `;
 
 const WelcomeCard = () => {
+  const { contents, getStats } = useStore()
+  
+  // Get current time info
+  const now = new Date()
+  const currentHour = now.getHours()
+  const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' })
+  const currentDate = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  
+  // Determine greeting and icon based on time
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-  };
-
-  const getMotivationalText = () => {
-    const texts = [
-      "Let's make this day productive.",
-      "Ready to create amazing content?",
-      "Time to engage your audience!",
-      "Your creativity awaits.",
-      "Let's build something great today."
-    ];
-    return texts[Math.floor(Math.random() * texts.length)];
-  };
-
-  const getGreetingIcon = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return <FiSun />;
-    if (hour < 18) return <FiZap />;
-    return <FiCoffee />;
-  };
-
+    if (currentHour < 12) return { text: 'Good Morning', icon: <FiSun /> }
+    if (currentHour < 17) return { text: 'Good Afternoon', icon: <FiZap /> }
+    return { text: 'Good Evening', icon: <FiCoffee /> }
+  }
+  
+  const greeting = getGreeting()
+  
+  // Get real stats from the store
+  const stats = getStats()
+  
+  // Get upcoming scheduled content (next 7 days)
+  const getUpcomingContent = () => {
+    const today = new Date()
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+    
+    return contents.filter(content => {
+      if (!content.scheduledDate) return false
+      const scheduleDate = new Date(content.scheduledDate)
+      return scheduleDate >= today && scheduleDate <= nextWeek
+    }).length
+  }
+  
+  const upcomingCount = getUpcomingContent()
+  
+  // Get today's scheduled content
+  const getTodayContent = () => {
+    const today = new Date().toDateString()
+    return contents.filter(content => {
+      if (!content.scheduledDate) return false
+      return new Date(content.scheduledDate).toDateString() === today
+    }).length
+  }
+  
+  const todayCount = getTodayContent()
+  
+  // Dynamic motivation messages
+  const getMotivation = () => {
+    if (stats.total === 0) return "Ready to create something amazing? Let's start your content journey!"
+    if (todayCount > 0) return `You have ${todayCount} content pieces scheduled for today. You're on fire! 🔥`
+    if (upcomingCount > 0) return `${upcomingCount} content pieces planned for this week. Keep up the momentum!`
+    if (stats.drafts > 0) return `${stats.drafts} drafts waiting to be published. Time to bring them to life!`
+    return "Your content strategy is looking great! Ready to create more magic?"
+  }
+  
   return (
     <WelcomeContainer>
-      <WelcomeHeader>
-        <WelcomeIcon>
-          {getGreetingIcon()}
-        </WelcomeIcon>
-        <div>
-          <WelcomeTitle>{getGreeting()}, Creator!</WelcomeTitle>
-          <WelcomeSubtitle>{getMotivationalText()}</WelcomeSubtitle>
-        </div>
-      </WelcomeHeader>
+      <div>
+        <WelcomeHeader>
+          <WelcomeContent>
+            <TimeInfo>
+              <span>{currentDay}, {currentDate}</span>
+            </TimeInfo>
+            <WelcomeTitle>{greeting.text}!</WelcomeTitle>
+            <WelcomeSubtitle>
+              Ready to create engaging content and grow your audience?
+            </WelcomeSubtitle>
+          </WelcomeContent>
+          <WelcomeIcon>
+            {greeting.icon}
+          </WelcomeIcon>
+        </WelcomeHeader>
+        
+        <MotivationText>
+          {getMotivation()}
+        </MotivationText>
+      </div>
       
-      <QuickActions>
-        <ActionButton>
-          <FiZap size={16} />
-          Create Content
-        </ActionButton>
-        <ActionButton>
-          <FiCoffee size={16} />
-          View Analytics
-        </ActionButton>
-      </QuickActions>
+      <StatsRow>
+        <QuickStat>
+          <FiCalendar className="icon" size={14} />
+          <span>{todayCount} today</span>
+        </QuickStat>
+        <QuickStat>
+          <FiTrendingUp className="icon" size={14} />
+          <span>{upcomingCount} this week</span>
+        </QuickStat>
+        <QuickStat>
+          <FiZap className="icon" size={14} />
+          <span>{stats.published} published</span>
+        </QuickStat>
+      </StatsRow>
     </WelcomeContainer>
-  );
-};
+  )
+}
 
-export default WelcomeCard; 
+export default WelcomeCard 

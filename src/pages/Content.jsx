@@ -1,7 +1,9 @@
-import React, { useState, useCallback, Suspense, useEffect } from 'react'
+import React, { useState, useCallback, Suspense } from 'react'
 import ContentCard from '../components/ContentCard'
 const CardModal = React.lazy(() => import('../components/CardModal'))
 import BulkOperations from '../components/BulkOperations'
+import ContentTemplates from '../components/ContentTemplates'
+import AdvancedScheduler from '../components/AdvancedScheduler'
 import { ContentCardSkeleton, InlineLoader } from '../components/LoadingStates'
 import styled from 'styled-components'
 import PageLayout from '../layouts/Layout'
@@ -10,7 +12,7 @@ import useStore from '../context/store'
 import useKeyboardShortcuts, { SHORTCUTS } from '../hooks/useKeyboardShortcuts'
 import { AnimatePresence } from 'framer-motion'
 import ErrorBoundary from '../components/ErrorBoundary'
-import { FiPlus, FiSearch, FiFilter, FiDownload, FiUpload } from 'react-icons/fi'
+import { FiPlus, FiSearch, FiFilter, FiDownload, FiUpload, FiCalendar, FiZap, FiEdit3, FiFileText } from 'react-icons/fi'
 
 const Container = styled.div`
   min-height: 100vh;
@@ -229,7 +231,6 @@ const Content = () => {
     updateContent,
     deleteContent,
     deleteMultipleContents,
-    getContentById,
     selectedItems,
     selectionMode,
     toggleSelectionMode,
@@ -248,6 +249,9 @@ const Content = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('All Types')
   const [modalLoading, setModalLoading] = useState(false)
+  const [templatesOpen, setTemplatesOpen] = useState(false)
+  const [schedulerOpen, setSchedulerOpen] = useState(false)
+  const [selectedContentForScheduling, setSelectedContentForScheduling] = useState([])
 
   // Real-time filtered contents
   const filteredContents = React.useMemo(() => {
@@ -349,6 +353,57 @@ const Content = () => {
       deleteContent(id)
     }
   }, [deleteContent])
+  
+  // Template handlers
+  const handleOpenTemplates = useCallback(() => {
+    setTemplatesOpen(true)
+  }, [])
+  
+  const handleCloseTemplates = useCallback(() => {
+    setTemplatesOpen(false)
+  }, [])
+  
+  const handleSelectTemplate = useCallback((templateContent) => {
+    setEditingContent(null)
+    setModalOpen(true)
+    // Pre-fill the modal with template content
+    setTimeout(() => {
+      // This would be handled by the CardModal component
+      console.log('Using template:', templateContent)
+    }, 100)
+  }, [])
+  
+  // Scheduler handlers
+  const handleOpenScheduler = useCallback(() => {
+    if (selectionMode && selectedItems.length > 0) {
+      const contentForScheduling = contents.filter(content => selectedItems.includes(content.id))
+      setSelectedContentForScheduling(contentForScheduling)
+    }
+    setSchedulerOpen(true)
+  }, [selectionMode, selectedItems, contents])
+  
+  const handleCloseScheduler = useCallback(() => {
+    setSchedulerOpen(false)
+    setSelectedContentForScheduling([])
+  }, [])
+  
+  const handleScheduleContent = useCallback((scheduleData) => {
+    console.log('Scheduling content:', scheduleData)
+    // Here you would implement the actual scheduling logic
+    // Update the content with schedule information
+    if (scheduleData.type === 'batch') {
+      scheduleData.data.forEach(item => {
+        const content = contents.find(c => c.id === item.id)
+        if (content) {
+          updateContent(content.id, {
+            scheduledDate: `${item.date}T${item.time}`,
+            status: 'Scheduled'
+          })
+        }
+      })
+    }
+    clearSelection()
+  }, [contents, updateContent, clearSelection])
 
   // Import/Export handlers
   const exportData = useCallback(() => {
@@ -372,7 +427,7 @@ const Content = () => {
           if (Array.isArray(importedData)) {
             importedData.forEach(item => addContent(item))
           }
-        } catch (error) {
+        } catch {
           alert('Error importing data. Please check the file format.')
         }
       }
@@ -391,6 +446,14 @@ const Content = () => {
 
   const headerActions = (
     <HeaderActions>
+      <ActionButton variant="secondary" onClick={handleOpenTemplates}>
+        <FiFileText />
+        Templates
+      </ActionButton>
+      <ActionButton variant="secondary" onClick={handleOpenScheduler}>
+        <FiCalendar />
+        Schedule
+      </ActionButton>
       <ActionButton variant="secondary" onClick={() => toggleSelectionMode()}>
         {selectionMode ? 'Exit Selection' : 'Select Mode'}
       </ActionButton>
@@ -465,8 +528,16 @@ const Content = () => {
                 clearSelection()
               }
             }}
-            onClearSelection={clearSelection}
-            onSelectAll={() => selectAll()}
+            onDuplicate={() => {
+              console.log('Bulk duplicate not implemented yet')
+            }}
+            onExport={() => {
+              console.log('Bulk export not implemented yet')
+            }}
+            onEdit={() => {
+              console.log('Bulk edit not implemented yet')
+            }}
+            onClose={clearSelection}
           />
         )}
 
@@ -516,6 +587,21 @@ const Content = () => {
             loading={modalLoading}
           />
         </Suspense>
+        
+        {/* Content Templates */}
+        <ContentTemplates
+          isOpen={templatesOpen}
+          onClose={handleCloseTemplates}
+          onSelectTemplate={handleSelectTemplate}
+        />
+        
+        {/* Advanced Scheduler */}
+        <AdvancedScheduler
+          isOpen={schedulerOpen}
+          onClose={handleCloseScheduler}
+          onSchedule={handleScheduleContent}
+          contentItems={selectedContentForScheduling}
+        />
       </Container>
     </PageLayout>
   )
