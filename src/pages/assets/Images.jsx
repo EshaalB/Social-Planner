@@ -24,6 +24,7 @@ import {
   FiArrowLeft
 } from 'react-icons/fi'
 import useDebouncedValue from '../../hooks/useDebouncedValue';
+import Swal from 'sweetalert2';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -352,7 +353,7 @@ const EmptyState = styled.div`
 
 const Images = () => {
   const navigate = useNavigate()
-  const { getAssetsByType } = useStore()
+  const { getAssetsByType, deleteAsset } = useStore()
   
   // Local state
   const [view, setView] = useState('grid')
@@ -431,7 +432,23 @@ const Images = () => {
   };
   
   const handleImageAction = (action, image) => {
-    console.log(`${action} for image:`, image.name)
+    if (action === 'delete') {
+      Swal.fire({
+        title: 'Delete this image?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#a084ca',
+        cancelButtonColor: '#6366f1',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // deleteAsset is assumed to be available from useStore
+          deleteAsset('images', image.id);
+          Swal.fire('Deleted!', 'Image deleted.', 'success');
+        }
+      });
+    }
   }
   
   const categories = ['all', 'photos', 'graphics', 'logos', 'icons']
@@ -551,7 +568,12 @@ const Images = () => {
                       whileTap={{ scale: 0.98 }}
                     >
                       <ImagePreview>
-                        <FiImage />
+                        {/* If image.url exists, show preview with loading="lazy" */}
+                        {image.url ? (
+                          <img src={image.url} alt={image.name} loading="lazy" aria-label={`Preview of ${image.name}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                        ) : (
+                          <FiImage />
+                        )}
                         <ImageActions className="image-actions">
                           {/* Only keep delete */}
                           <IconButton aria-label="Delete image" onClick={() => handleImageAction('delete', image)}>

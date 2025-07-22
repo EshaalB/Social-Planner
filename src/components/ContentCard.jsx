@@ -442,16 +442,6 @@ const DateText = styled.div`
   letter-spacing: 0.5px;
 `;
 
-const getTypeIcon = (type) => {
-  switch (type) {
-    case 'Video': return '🎬';
-    case 'Blog': return '📝';
-    case 'Social': return '📱';
-    default: return '📄';
-  }
-};
-
-
 
 const ContentCard = ({ 
   title, 
@@ -499,7 +489,6 @@ const ContentCard = ({
       }}
     >
       <ContentPreview type={type}>
-        <PreviewIcon>{getTypeIcon(type)}</PreviewIcon>
         
         <CardHeader>
           <TypeBadge>{type}</TypeBadge>

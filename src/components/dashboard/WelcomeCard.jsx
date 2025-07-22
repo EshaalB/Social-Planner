@@ -9,8 +9,11 @@ const WelcomeContainer = styled.div`
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-xl);
   padding: 24px 28px;
-  height: 200px;
-  width: 500px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 160px;
+  height: auto;
   box-shadow: var(--shadow-card);
   position: relative;
   overflow: hidden;
@@ -36,6 +39,10 @@ const WelcomeContainer = styled.div`
   
   &:hover::before {
     opacity: 0.05;
+  }
+  @media (max-width: 700px) {
+    padding: 14px 8px;
+    min-height: 120px;
   }
 `;
 
@@ -97,6 +104,9 @@ const WelcomeTitle = styled.h1`
   
   @media (max-width: 768px) {
     font-size: 20px;
+  }
+  @media (max-width: 700px) {
+    font-size: 17px;
   }
 `;
 

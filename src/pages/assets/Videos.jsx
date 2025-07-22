@@ -24,9 +24,9 @@ import {
   FiArrowLeft,
   FiPlay
 } from 'react-icons/fi'
-import useToast from '../../hooks/useToast';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 import AssetUploader from '../../components/AssetUploader';
+import Swal from 'sweetalert2';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -223,7 +223,7 @@ const VideoPreview = styled.div`
   overflow: hidden;
 `;
 
-const PlayButton = styled.div`
+const PlayButton = styled.button`
   position: absolute;
   top: 50%;
   left: 50%;
@@ -240,6 +240,14 @@ const PlayButton = styled.div`
   font-size: 20px;
   transition: var(--transition);
   border: 2px solid rgba(255, 255, 255, 0.3);
+  border: none;
+  cursor: pointer;
+  outline: none;
+
+  &:hover, &:focus {
+    background: rgba(0,0,0,0.85);
+    transform: translate(-50%, -50%) scale(1.05);
+  }
 `;
 
 const VideoDuration = styled.div`
@@ -441,11 +449,11 @@ const EmptyState = styled.div`
 
 const Videos = () => {
   const navigate = useNavigate()
-  const { getAssetsByType } = useStore()
-  const { toast } = useToast();
+  const { getAssetsByType, deleteAsset } = useStore()
   
   // Local state
   const [view, setView] = useState('grid')
+  const [playingVideoId, setPlayingVideoId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [filterFormat, setFilterFormat] = useState('all')
@@ -546,10 +554,23 @@ const Videos = () => {
   };
   
   const handleVideoAction = (action, video) => {
-    toast({
-      type: 'info',
-      message: `${action} for video: ${video.name}`,
-    });
+    if (action === 'delete') {
+      Swal.fire({
+        title: 'Delete this video?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#a084ca',
+        cancelButtonColor: '#6366f1',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // deleteAsset is assumed to be available from useStore
+          deleteAsset('videos', video.id);
+          Swal.fire('Deleted!', 'Video deleted.', 'success');
+        }
+      });
+    }
   };
   
   const formats = ['all', 'mp4', 'mov', 'avi', 'webm', 'mkv']
@@ -697,10 +718,24 @@ const Videos = () => {
                       whileTap={{ scale: 0.98 }}
                     >
                       <VideoPreview>
-                        <FiVideo />
-                        <PlayButton className="play-button">
-                          <FiPlay />
-                        </PlayButton>
+                        {playingVideoId === video.id ? (
+                          <video
+                            src={video.url || video.src || ''}
+                            controls
+                            autoPlay
+                            loading="lazy"
+                            aria-label={`Preview of ${video.name}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
+                            onEnded={() => setPlayingVideoId(null)}
+                          />
+                        ) : (
+                          <>
+                            <FiVideo />
+                            <PlayButton className="play-button" onClick={() => setPlayingVideoId(video.id)} aria-label={`Play ${video.name}`}>
+                              <FiPlay />
+                            </PlayButton>
+                          </>
+                        )}
                         <VideoDuration>{video.duration}</VideoDuration>
                         <VideoActions className="video-actions">
                           {/* Only keep delete */}
@@ -720,7 +755,7 @@ const Videos = () => {
                             {video.quality}
                           </QualityBadge>
                           <span>\u2022</span>
-                          <span>{video.format.toUpperCase()}</span>
+                          <span>{video.format ? video.format.toUpperCase() : ''}</span>
                         </VideoMeta>
                         <VideoTags>
                           {video.tags.map((tag, tagIndex) => (
@@ -760,7 +795,7 @@ const Videos = () => {
                             {video.quality}
                           </QualityBadge>
                           <span>\u2022</span>
-                          <span>{video.format.toUpperCase()}</span>
+                          <span>{video.format ? video.format.toUpperCase() : ''}</span>
                         </ListMeta>
                         <VideoTags>
                           {video.tags.slice(0, 3).map((tag, tagIndex) => (

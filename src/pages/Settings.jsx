@@ -27,6 +27,8 @@ import {
   FiCheck,
   FiX
 } from 'react-icons/fi'
+import AssetUploader from '../components/AssetUploader';
+import Swal from 'sweetalert2';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -358,6 +360,8 @@ const Settings = () => {
   const [activeSection, setActiveSection] = useState('profile')
   const [isEditing, setIsEditing] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  // Add state for uploader modal
+  const [uploaderOpen, setUploaderOpen] = useState(false);
   
   // Settings state
   const [profile, setProfile] = useState({
@@ -423,10 +427,22 @@ const Settings = () => {
   }
   
   const handleDeleteAccount = () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      console.log('Account deletion requested')
-    }
-  }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This action cannot be undone. All your content, assets, and data will be permanently deleted.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ff6b6b',
+      cancelButtonColor: '#6366f1',
+      confirmButtonText: 'Yes, delete my account!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Actual delete logic here
+        Swal.fire('Deleted!', 'Your account has been deleted.', 'success');
+        console.log('Account deletion requested');
+      }
+    });
+  };
   
   const headerStats = [
     { value: '12', label: 'Settings' },
@@ -798,7 +814,7 @@ const Settings = () => {
           <FiDownload />
           Export Data
         </ActionButton>
-        <ActionButton>
+        <ActionButton onClick={() => setUploaderOpen(true)}>
           <FiUpload />
           Import Data
         </ActionButton>
@@ -872,6 +888,7 @@ const Settings = () => {
             {renderActiveSection()}
           </MainContent>
         </SettingsGrid>
+        <AssetUploader isOpen={uploaderOpen} onClose={() => setUploaderOpen(false)} assetType="images" />
       </Container>
     </PageLayout>
   )

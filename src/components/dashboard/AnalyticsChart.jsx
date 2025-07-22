@@ -7,6 +7,7 @@ const AnalyticsContainer = styled.div`
   margin-top: -380px;
   width: 500px;
   background: var(--glass-bg);
+  margin-right: 20px;
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-xl);
@@ -33,6 +34,9 @@ const AnalyticsContainer = styled.div`
   
   &:hover::before {
     opacity: 0.04;
+  }
+  @media (max-width: 700px) {
+    padding: 14px 6px;
   }
 `;
 
@@ -78,14 +82,22 @@ const AnalyticsIcon = styled.div`
  
 
 const ChartContainer = styled.div`
-  height: 200px;
+  height: 180px;
   position: relative;
   margin-bottom: 24px;
+  width: 100%;
+  max-width: 100%;
+  @media (max-width: 700px) {
+    height: 120px;
+    margin-bottom: 12px;
+  }
 `;
 
 const ChartSvg = styled.svg`
   width: 100%;
   height: 100%;
+  min-width: 0;
+  max-width: 100%;
 `;
 
 const ChartPath = styled.path`

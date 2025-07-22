@@ -29,8 +29,8 @@ import {
   FiBarChart2
 } from 'react-icons/fi'
 import useFileImport from '../../hooks/useFileImport';
-import useToast from '../../hooks/useToast';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
+import Swal from 'sweetalert2';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -493,9 +493,8 @@ const ModalTextarea = styled.textarea`
 
 const Hashtags = () => {
   const navigate = useNavigate()
-  const { getAssetsByType, addHashtagSet } = useStore()
+  const { getAssetsByType, addHashtagSet, deleteAsset } = useStore()
   const { importFile, isImporting } = useFileImport();
-  const { showToast } = useToast();
   const { isOpen: isAddOpen, open: openAdd, close: closeAdd } = useModal();
   const [newHashtag, setNewHashtag] = useState({ title: '', hashtags: '', category: 'general', description: '' });
   
@@ -601,19 +600,31 @@ const Hashtags = () => {
     fileInputRef.current?.click();
   };
   
-  const handleCreateNew = () => {
-    console.log('Create new hashtag set')
-  }
-  
   const handleHashtagAction = (action, hashtagSet) => {
-    if (action === 'copy') {
-      const hashtagString = hashtagSet.hashtags.join(' ')
-      navigator.clipboard.writeText(hashtagString)
-      console.log('Copied to clipboard:', hashtagSet.title)
+    if (action === 'delete') {
+      Swal.fire({
+        title: 'Delete this hashtag set?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#a084ca',
+        cancelButtonColor: '#6366f1',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // deleteAsset is assumed to be available from useStore
+          deleteAsset('hashtags', hashtagSet.id);
+          Swal.fire('Deleted!', 'Hashtag set deleted.', 'success');
+        }
+      });
+    } else if (action === 'copy') {
+      const hashtagString = hashtagSet.hashtags.join(' ');
+      navigator.clipboard.writeText(hashtagString);
+      console.log('Copied to clipboard:', hashtagSet.title);
     } else {
-      console.log(`${action} for hashtag set:`, hashtagSet.title)
+      console.log(`${action} for hashtag set:`, hashtagSet.title);
     }
-  }
+  };
   
   const categories = ['all', 'marketing', 'technology', 'lifestyle', 'business', 'trending']
   const trends = ['all', 'rising', 'stable', 'falling']
@@ -651,20 +662,6 @@ const Hashtags = () => {
       <Button $primary onClick={openAdd} style={{ marginBottom: 20 }}>
         Add New Hashtag Set
       </Button>
-      <Modal isOpen={isAddOpen} onClose={closeAdd} title="Add New Hashtag Set">
-        <ModalForm onSubmit={e => {
-          e.preventDefault();
-          addHashtagSet({ ...newHashtag, hashtags: newHashtag.hashtags.split(',').map(t => t.trim()).filter(Boolean), id: Date.now() + Math.random() });
-          setNewHashtag({ title: '', hashtags: '', category: 'general', description: '' });
-          closeAdd();
-        }}>
-          <ModalInput placeholder="Title" value={newHashtag.title} onChange={e => setNewHashtag({ ...newHashtag, title: e.target.value })} required />
-          <ModalTextarea placeholder="Hashtags (comma separated)" value={newHashtag.hashtags} onChange={e => setNewHashtag({ ...newHashtag, hashtags: e.target.value })} required />
-          <ModalInput placeholder="Category" value={newHashtag.category} onChange={e => setNewHashtag({ ...newHashtag, category: e.target.value })} />
-          <ModalTextarea placeholder="Description" value={newHashtag.description} onChange={e => setNewHashtag({ ...newHashtag, description: e.target.value })} />
-          <Button $primary type="submit">Submit</Button>
-        </ModalForm>
-      </Modal>
     </div>
   )
   
@@ -928,6 +925,22 @@ const Hashtags = () => {
             </EmptyState>
           )}
         </ContentArea>
+        {isAddOpen && (
+          <Modal isOpen={isAddOpen} onClose={closeAdd} title="Add New Hashtag Set">
+            <ModalForm onSubmit={e => {
+              e.preventDefault();
+              addHashtagSet({ ...newHashtag, hashtags: newHashtag.hashtags.split(',').map(t => t.trim()).filter(Boolean), id: Date.now() + Math.random() });
+              setNewHashtag({ title: '', hashtags: '', category: 'general', description: '' });
+              closeAdd();
+            }}>
+              <ModalInput placeholder="Title" value={newHashtag.title} onChange={e => setNewHashtag({ ...newHashtag, title: e.target.value })} required />
+              <ModalTextarea placeholder="Hashtags (comma separated)" value={newHashtag.hashtags} onChange={e => setNewHashtag({ ...newHashtag, hashtags: e.target.value })} required />
+              <ModalInput placeholder="Category" value={newHashtag.category} onChange={e => setNewHashtag({ ...newHashtag, category: e.target.value })} />
+              <ModalTextarea placeholder="Description" value={newHashtag.description} onChange={e => setNewHashtag({ ...newHashtag, description: e.target.value })} />
+              <Button $primary type="submit">Submit</Button>
+            </ModalForm>
+          </Modal>
+        )}
       </Container>
     </PageLayout>
   )

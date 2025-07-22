@@ -96,55 +96,26 @@ const PageTitle = styled.h1`
 `;
 
 const MenuButton = styled.button`
-  display: none;
   position: fixed;
   top: 16px;
   left: 16px;
-  z-index: 1201;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  color: var(--text-primary);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  width: 44px;
-  height: 44px;
+  z-index: 1400;
+  background: var(--linearPrimaryAccent);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  box-shadow: var(--glass-shadow);
+  box-shadow: 0 4px 24px rgba(80, 0, 120, 0.15);
   cursor: pointer;
-  transition: var(--transition);
-  position: relative;
-  overflow: hidden;
-  
-  /* Gradient overlay on hover */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimaryAccent);
-    opacity: 0;
-    transition: var(--transition);
-  }
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium), var(--shadow-glow);
-    color: white;
-  }
-  
-  &:hover::before {
-    opacity: 1;
-  }
-  
-  /* Icon above overlay */
-  & > * {
-    position: relative;
-    z-index: 1;
-  }
-  
-  @media (max-width: 1024px) {
-    display: flex;
+  transition: box-shadow 0.2s, background 0.2s;
+  outline: none;
+  border: 2px solid var(--border-glass);
+  @media (min-width: 1025px) {
+    display: none;
   }
 `;
 
@@ -172,12 +143,13 @@ const Layout = ({ children, title }) => {
 
   return (
     <LayoutContainer>
-      <MenuButton onClick={handleMenuToggle} aria-label="Open navigation menu">
-        <FiMenu />
-      </MenuButton>
       <SideBar isMobile={isMobile} onClose={handleSidebarClose} />
       <div style={{ flex: 1, maxWidth: '100vw', overflowX: 'hidden' }}>
         <Header />
+        <MenuButton onClick={handleMenuToggle} aria-label="Open navigation menu">
+          <span style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', border: 0 }}>Open navigation menu</span>
+          <FiMenu size={28} />
+        </MenuButton>
         <MainContent>
           <ContentWrapper>
             {title && (

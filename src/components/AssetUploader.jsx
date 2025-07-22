@@ -5,7 +5,6 @@ import { FiUpload, FiX, FiImage, FiVideo, FiFile, FiCheck, FiEdit3, FiTrash2, Fi
 import useStore from '../context/store'
 import { IconButton } from './Button';
 import Modal from './Modal';
-import useModal from '../hooks/useModal';
 import useToast from '../hooks/useToast';
 
 const DropZone = styled.div`
@@ -193,26 +192,27 @@ const UploadButton = styled.button`
   background: var(--linearPrimarySecondary);
   color: white;
   border: none;
-  border-radius: var(--radius-md);
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  padding: 14px 32px;
+  font-size: 1.1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: var(--transition);
+  transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+  box-shadow: var(--shadow-medium);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-top: 24px;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
+  outline: none;
+
+  &:hover, &:focus {
+    background: var(--linearPrimaryAccent);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: var(--shadow-large);
   }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 `;
 
@@ -357,14 +357,6 @@ const AssetUploader = ({ isOpen, onClose, assetType = 'images' }) => {
     }
   }
   
-  const getFileIcon = (type) => {
-    switch (type) {
-      case 'image': return <FiImage />
-      case 'video': return <FiVideo />
-      default: return <FiFile />
-    }
-  }
-  
   if (!isOpen) return null
   
   return (
@@ -414,15 +406,15 @@ const AssetUploader = ({ isOpen, onClose, assetType = 'images' }) => {
                   {fileObj.preview && (fileObj.type === 'image' || fileObj.type === 'video') ? (
                     <FilePreview>
                       {fileObj.type === 'image' ? (
-                        <img src={fileObj.preview} alt={fileObj.name} />
+                        <img src={fileObj.preview} alt={fileObj.name} loading="lazy" aria-label={`Preview of ${fileObj.name}`} />
                       ) : (
-                        <video src={fileObj.preview} />
+                        <video src={fileObj.preview} controls loading="lazy" aria-label={`Preview of ${fileObj.name}`} />
                       )}
                     </FilePreview>
                   ) : (
-                    <FileIcon>
-                      {getFileIcon(fileObj.type)}
-                    </FileIcon>
+                    <FilePreview>
+                      {fileObj.type === 'image' ? <FiImage size={40} /> : fileObj.type === 'video' ? <FiVideo size={40} /> : <FiFile size={40} />}
+                    </FilePreview>
                   )}
                   
                   <FileInfo>

@@ -9,16 +9,16 @@ const HeaderContainer = styled.header`
   left: 80px;
   right: 0;
   height: var(--header-height);
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border-bottom: 1px solid var(--border-glass);
-  box-shadow: var(--glass-shadow);
-  z-index: 1100;
+  background: ${({ $scrolled }) => $scrolled ? 'var(--glass-bg)' : 'transparent'};
+  backdrop-filter: ${({ $scrolled }) => $scrolled ? 'var(--backdrop-blur)' : 'none'};
+  border-bottom: ${({ $scrolled }) => $scrolled ? '1px solid var(--border-glass)' : 'none'};
+  box-shadow: ${({ $scrolled }) => $scrolled ? 'var(--glass-shadow)' : 'none'};
+  z-index: 1300;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  transition: var(--transition);
+  transition: background 0.3s, box-shadow 0.3s, border-bottom 0.3s, backdrop-filter 0.3s;
   
   @media (max-width: 1024px) {
     left: 0;
@@ -30,6 +30,7 @@ const LeftSection = styled.div`
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
 `;
 
 const BrandName = styled.h1`
@@ -45,8 +46,8 @@ const BrandName = styled.h1`
   -webkit-text-fill-color: transparent;
   background-clip: text;
   
-  @media (max-width: 768px) {
-    font-size: 18px;
+  @media (max-width: 1024px) {
+    display: none;
   }
 `;
 
@@ -55,6 +56,7 @@ const CenterSection = styled.div`
   align-items: center;
   justify-content: center;
   flex: 1;
+  min-width: 0;
 `;
 
 const ThemeToggleContainer = styled.div`
@@ -109,6 +111,7 @@ const RightSection = styled.div`
   gap: 12px;
   flex: 1;
   justify-content: flex-end;
+  min-width: 0;
 `;
 
 const SearchContainer = styled.div`
@@ -173,7 +176,7 @@ const SearchInput = styled.input`
   right: 50px;
   top: 50%;
   transform: translateY(-50%);
-  width: ${props => props.isOpen ? '200px' : '0'};
+  width: ${props => props.$isOpen ? '200px' : '0'};
   height: 40px;
   background: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
@@ -182,8 +185,8 @@ const SearchInput = styled.input`
   padding: 0 16px;
   font-size: 14px;
   color: var(--text-primary);
-  opacity: ${props => props.isOpen ? '1' : '0'};
-  visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
+  opacity: ${props => props.$isOpen ? '1' : '0'};
+  visibility: ${props => props.$isOpen ? 'visible' : 'hidden'};
   transition: all var(--transition);
   box-shadow: var(--glass-shadow);
   
@@ -198,7 +201,7 @@ const SearchInput = styled.input`
   }
   
   @media (max-width: 768px) {
-    width: ${props => props.isOpen ? '150px' : '0'};
+    width: ${props => props.$isOpen ? '150px' : '0'};
   }
 `;
 
@@ -239,8 +242,18 @@ const Header = () => {
   const { theme, toggleTheme } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [scrolled, setScrolled] = useState(false);
   
   const isDark = theme === 'dark';
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 8);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSearchToggle = () => {
     setSearchOpen(!searchOpen);
@@ -269,7 +282,7 @@ const Header = () => {
   };
 
   return (
-    <HeaderContainer>
+    <HeaderContainer $scrolled={scrolled}>
       <LeftSection>
         <BrandName>Social Planner</BrandName>
       </LeftSection>
@@ -304,7 +317,7 @@ const Header = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onBlur={handleSearchBlur}
-              isOpen={searchOpen}
+              $isOpen={searchOpen}
             />
           </form>
           <SearchButton 

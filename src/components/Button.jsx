@@ -1,18 +1,29 @@
 import styled from 'styled-components';
 
 const StyledButton = styled.button`
-  background: var(--accent);
-  color: var(--text-white);
+  background: var(--linearPrimarySecondary);
+  color: white;
   border: none;
-  border-radius: var(--radius);
-  padding: var(--sm) var(--lg);
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: var(--radius-lg);
+  padding: 14px 32px;
+  font-size: 1.1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+  box-shadow: var(--shadow-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  outline: none;
 
-  &:hover {
-    background: var(--accent-hover);
+  &:hover, &:focus {
+    background: var(--linearPrimaryAccent);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: var(--shadow-large);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 `;
 

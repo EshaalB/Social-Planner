@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import styled from 'styled-components'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiPlus, FiX, FiCalendar, FiClock, FiCheck, FiEdit3, FiImage, FiVideo, FiFileText, FiTrendingUp } from 'react-icons/fi'
+import { FiPlus, FiX, FiCalendar, FiClock, FiCheck, FiEdit3, FiImage, FiVideo, FiFileText, FiTrendingUp, FiTrash2 } from 'react-icons/fi'
 import useStore from '../../context/store'
 
 const TodoContainer = styled.div`
@@ -15,6 +15,12 @@ const TodoContainer = styled.div`
   overflow: hidden;
   height: fit-content;
   max-height: 600px;
+  width: 100%;
+  min-width: 0;
+  @media (max-width: 700px) {
+    padding: 12px 6px;
+    max-height: none;
+  }
   
   /* Gradient overlay */
   &::before {
@@ -87,6 +93,11 @@ const TodoList = styled.div`
   gap: 12px;
   max-height: 400px;
   overflow-y: auto;
+  width: 100%;
+  @media (max-width: 700px) {
+    gap: 8px;
+    max-height: none;
+  }
   
   /* Custom scrollbar */
   &::-webkit-scrollbar {
@@ -122,6 +133,11 @@ const TodoItem = styled(motion.div)`
   &:hover {
     border-color: var(--border-accent);
     transform: translateX(4px);
+  }
+  width: 100%;
+  min-width: 0;
+  @media (max-width: 700px) {
+    padding: 10px 4px;
   }
 `;
 
@@ -225,13 +241,24 @@ const EmptyState = styled.div`
 const TodoListComponent = () => {
   const { contents, getAssetStats } = useStore()
   const [completedTasks, setCompletedTasks] = useState(new Set())
+  const [customTodos, setCustomTodos] = useState(() => {
+    // Persist custom todos in localStorage
+    const saved = localStorage.getItem('customTodos');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [adding, setAdding] = useState(false);
+  const [newTodo, setNewTodo] = useState('');
+
+  // Save custom todos to localStorage
+  React.useEffect(() => {
+    localStorage.setItem('customTodos', JSON.stringify(customTodos));
+  }, [customTodos]);
   
   // Generate smart todos based on actual content and assets
   const smartTodos = useMemo(() => {
     const todos = []
     const today = new Date()
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000)
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
     
     // Drafts that need to be completed
     const drafts = contents.filter(content => content.status === 'Draft')
@@ -379,7 +406,10 @@ const TodoListComponent = () => {
     return todos
   }, [contents, getAssetStats])
   
-  const incompleteTodos = smartTodos.filter(todo => !completedTasks.has(todo.id))
+  const incompleteTodos = [
+    ...customTodos.map(todo => ({ ...todo, custom: true })),
+    ...smartTodos.filter(todo => !completedTasks.has(todo.id))
+  ];
   
   const toggleTodo = (id) => {
     setCompletedTasks(prev => {
@@ -392,19 +422,35 @@ const TodoListComponent = () => {
       return newSet
     })
   }
-  
-  const getIconForType = (type) => {
-    switch (type) {
-      case 'content': return <FiEdit3 />
-      case 'schedule': return <FiCalendar />
-      case 'review': return <FiClock />
-      case 'assets': return <FiImage />
-      case 'strategy': return <FiVideo />
-      case 'goal': return <FiTrendingUp />
-      case 'onboarding': return <FiFileText />
-      default: return <FiCheck />
+
+  const addCustomTodo = () => {
+    if (newTodo.trim()) {
+      setCustomTodos(prev => [
+        ...prev,
+        {
+          id: 'custom-' + Date.now(),
+          text: newTodo,
+          subtitle: '',
+          icon: <FiEdit3 />,
+          iconColor: '#a084ca',
+          tag: 'Custom',
+          tagColor: '#a084ca',
+          time: '',
+          type: 'custom',
+        }
+      ]);
+      setNewTodo('');
+      setAdding(false);
     }
-  }
+  };
+
+  const deleteTodo = (id, isCustom) => {
+    if (isCustom) {
+      setCustomTodos(prev => prev.filter(todo => todo.id !== id));
+    } else {
+      setCompletedTasks(prev => new Set([...prev, id])); // Dismiss smart todo for session
+    }
+  };
   
   return (
     <TodoContainer>
@@ -415,28 +461,56 @@ const TodoListComponent = () => {
             <TodoCount>{incompleteTodos.length}</TodoCount>
           )}
         </div>
-        <AddButton onClick={() => console.log('Add custom todo')}>
-          <FiPlus size={16} />
-        </AddButton>
+        {adding ? (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              aria-label="New task"
+              value={newTodo}
+              onChange={e => setNewTodo(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') addCustomTodo(); }}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1.5px solid var(--border-glass)',
+                fontSize: 14,
+                outline: 'none',
+                minWidth: 120
+              }}
+              autoFocus
+            />
+            <AddButton aria-label="Add task" onClick={addCustomTodo}>
+              <FiCheck size={16} />
+            </AddButton>
+            <AddButton aria-label="Cancel add task" onClick={() => { setAdding(false); setNewTodo(''); }}>
+              <FiX size={16} />
+            </AddButton>
+          </div>
+        ) : (
+          <AddButton aria-label="Add new task" onClick={() => setAdding(true)}>
+            <FiPlus size={16} />
+          </AddButton>
+        )}
       </TodoHeader>
       
       <TodoList>
         {incompleteTodos.length > 0 ? (
           <AnimatePresence mode="popLayout">
-            {incompleteTodos.map((todo, index) => (
+            {incompleteTodos.map((todo) => (
               <TodoItem
                 key={todo.id}
                 $completed={completedTasks.has(todo.id)}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.2, delay: index * 0.05 }}
+                transition={{ duration: 0.2 }}
                 layout
+                aria-label={`Task: ${todo.text}`}
               >
                 <TodoContent>
                   <TodoCheckbox
                     $completed={completedTasks.has(todo.id)}
                     onClick={() => toggleTodo(todo.id)}
+                    aria-label={completedTasks.has(todo.id) ? 'Mark as incomplete' : 'Mark as complete'}
                   >
                     {completedTasks.has(todo.id) && <FiCheck size={12} />}
                   </TodoCheckbox>
@@ -456,6 +530,13 @@ const TodoListComponent = () => {
                         <FiClock size={8} />
                         {todo.time}
                       </TodoTime>
+                      <AddButton
+                        aria-label="Delete task"
+                        style={{ background: 'none', color: '#e1306c', boxShadow: 'none', marginLeft: 8 }}
+                        onClick={e => { e.stopPropagation(); deleteTodo(todo.id, !!todo.custom); }}
+                      >
+                        <FiTrash2 size={14} />
+                      </AddButton>
                     </TodoMeta>
                   </TodoDetails>
                 </TodoContent>

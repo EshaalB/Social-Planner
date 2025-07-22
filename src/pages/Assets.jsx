@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import styled from 'styled-components'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -17,6 +17,7 @@ import {
   FiSearch,
   FiFilter
 } from 'react-icons/fi'
+import { LuImage, LuVideo, LuText, LuHash } from 'react-icons/lu';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -410,11 +411,6 @@ const Assets = () => {
     navigate(route)
   }
 
-  const handleUpload = () => {
-    // TODO: Implement upload functionality
-    console.log('Upload clicked')
-  }
-
   const handleCreateNew = () => {
     // TODO: Implement create new asset functionality
     console.log('Create new clicked')
@@ -432,6 +428,13 @@ const Assets = () => {
       {/* Remove the Create New button from headerActions in Assets.jsx */}
     </QuickActions>
   )
+
+  const iconMap = {
+    image: <LuImage size={22} color="#a084ca" />,
+    video: <LuVideo size={22} color="#f5576c" />,
+    caption: <LuText size={22} color="#4facfe" />,
+    hashtag: <LuHash size={22} color="#fa709a" />
+  };
 
   return (
     <PageLayout>
@@ -492,10 +495,11 @@ const Assets = () => {
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  aria-label={`Recent asset: ${asset.name}`}
                 >
                   <RecentItemHeader>
-                    <RecentItemIcon $bgColor={asset.bgColor}>
-                      {asset.icon}
+                    <RecentItemIcon $bgColor={asset.bgColor} aria-label={`${asset.type} icon`}>
+                      {iconMap[asset.iconType] || null}
                     </RecentItemIcon>
                     <RecentItemTitle>{asset.name}</RecentItemTitle>
                   </RecentItemHeader>

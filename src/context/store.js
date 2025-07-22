@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { LuImage, LuVideo, LuText, LuHash } from 'react-icons/lu';
 
 // Local storage utility functions
 const getStorageKey = (key) => `social-planner-${key}`
@@ -282,10 +283,10 @@ const useStore = create(
       getRecentAssets: (limit = 10) => {
         const assets = get().assets
         const allAssets = [
-          ...assets.images.map(item => ({ ...item, type: 'image', icon: '🖼️', bgColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' })),
-          ...assets.videos.map(item => ({ ...item, type: 'video', icon: '🎥', bgColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' })),
-          ...assets.captions.map(item => ({ ...item, type: 'caption', icon: '📝', bgColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' })),
-          ...assets.hashtags.map(item => ({ ...item, type: 'hashtag', icon: '#️⃣', bgColor: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }))
+          ...assets.images.map(item => ({ ...item, type: 'image', iconType: 'image', bgColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' })),
+          ...assets.videos.map(item => ({ ...item, type: 'video', iconType: 'video', bgColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' })),
+          ...assets.captions.map(item => ({ ...item, type: 'caption', iconType: 'caption', bgColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' })),
+          ...assets.hashtags.map(item => ({ ...item, type: 'hashtag', iconType: 'hashtag', bgColor: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }))
         ]
         
         return allAssets

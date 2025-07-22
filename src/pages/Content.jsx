@@ -14,8 +14,8 @@ import { AnimatePresence } from 'framer-motion'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { FiPlus, FiSearch, FiFilter, FiDownload, FiUpload, FiCalendar, FiZap, FiEdit3, FiFileText } from 'react-icons/fi'
 import ActionButton from '../components/ActionButton';
-import useToast from '../hooks/useToast';
 import useDebouncedValue from '../hooks/useDebouncedValue';
+import Swal from 'sweetalert2';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -206,7 +206,6 @@ const Content = () => {
     addContent,
     updateContent,
     deleteContent,
-    deleteMultipleContents,
     selectedItems,
     selectionMode,
     toggleSelectionMode,
@@ -226,9 +225,6 @@ const Content = () => {
   const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [filterType, setFilterType] = useState('All Types')
   const [modalLoading, setModalLoading] = useState(false)
-  const [templatesOpen, setTemplatesOpen] = useState(false)
-  const [schedulerOpen, setSchedulerOpen] = useState(false)
-  const [selectedContentForScheduling, setSelectedContentForScheduling] = useState([])
 
   // Real-time filtered contents
   const filteredContents = React.useMemo(() => {
@@ -326,62 +322,22 @@ const Content = () => {
   }, [])
 
   const handleDeleteCard = useCallback((id) => {
-    if (window.confirm('Are you sure you want to delete this content?')) {
-      deleteContent(id)
-    }
-  }, [deleteContent])
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will permanently delete this content.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#a084ca',
+      cancelButtonColor: '#6366f1',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteContent(id);
+        Swal.fire('Deleted!', 'Your content has been deleted.', 'success');
+      }
+    });
+  }, [deleteContent]);
   
-  // Template handlers
-  const handleOpenTemplates = useCallback(() => {
-    setTemplatesOpen(true)
-  }, [])
-  
-  const handleCloseTemplates = useCallback(() => {
-    setTemplatesOpen(false)
-  }, [])
-  
-  const handleSelectTemplate = useCallback((templateContent) => {
-    setEditingContent(null)
-    setModalOpen(true)
-    // Pre-fill the modal with template content
-    setTimeout(() => {
-      // This would be handled by the CardModal component
-      console.log('Using template:', templateContent)
-    }, 100)
-  }, [])
-  
-  // Scheduler handlers
-  const handleOpenScheduler = useCallback(() => {
-    if (selectionMode && selectedItems.length > 0) {
-      const contentForScheduling = contents.filter(content => selectedItems.includes(content.id))
-      setSelectedContentForScheduling(contentForScheduling)
-    }
-    setSchedulerOpen(true)
-  }, [selectionMode, selectedItems, contents])
-  
-  const handleCloseScheduler = useCallback(() => {
-    setSchedulerOpen(false)
-    setSelectedContentForScheduling([])
-  }, [])
-  
-  const handleScheduleContent = useCallback((scheduleData) => {
-    console.log('Scheduling content:', scheduleData)
-    // Here you would implement the actual scheduling logic
-    // Update the content with schedule information
-    if (scheduleData.type === 'batch') {
-      scheduleData.data.forEach(item => {
-        const content = contents.find(c => c.id === item.id)
-        if (content) {
-          updateContent(content.id, {
-            scheduledDate: `${item.date}T${item.time}`,
-            status: 'Scheduled'
-          })
-        }
-      })
-    }
-    clearSelection()
-  }, [contents, updateContent, clearSelection])
-
   // Import/Export handlers
   const exportData = useCallback(() => {
     const dataStr = JSON.stringify(contents, null, 2)
@@ -423,17 +379,7 @@ const Content = () => {
 
   const headerActions = (
     <HeaderActions>
-      <ActionButton variant="secondary" onClick={handleOpenTemplates}>
-        <FiFileText />
-        Templates
-      </ActionButton>
-      <ActionButton variant="secondary" onClick={handleOpenScheduler}>
-        <FiCalendar />
-        Schedule
-      </ActionButton>
-      <ActionButton variant="secondary" onClick={() => toggleSelectionMode()}>
-        {selectionMode ? 'Exit Selection' : 'Select Mode'}
-      </ActionButton>
+    
       <ActionButton variant="secondary" onClick={exportData}>
         <FiDownload />
         Export
@@ -495,29 +441,7 @@ const Content = () => {
           )}
         </ResultsInfo>
 
-        {/* Bulk Operations */}
-        {selectionMode && selectedItems.length > 0 && (
-          <BulkOperations
-            selectedCount={selectedItems.length}
-            onDelete={() => {
-              if (window.confirm(`Delete ${selectedItems.length} selected items?`)) {
-                deleteMultipleContents(selectedItems)
-                clearSelection()
-              }
-            }}
-            onDuplicate={() => {
-              console.log('Bulk duplicate not implemented yet')
-            }}
-            onExport={() => {
-              console.log('Bulk export not implemented yet')
-            }}
-            onEdit={() => {
-              console.log('Bulk edit not implemented yet')
-            }}
-            onClose={clearSelection}
-          />
-        )}
-
+   
         {/* Content Grid */}
         {filteredContents.length > 0 ? (
           <ContentGrid>
@@ -567,17 +491,17 @@ const Content = () => {
         
         {/* Content Templates */}
         <ContentTemplates
-          isOpen={templatesOpen}
-          onClose={handleCloseTemplates}
-          onSelectTemplate={handleSelectTemplate}
+          isOpen={false}
+          onClose={() => {}}
+          onSelectTemplate={() => {}}
         />
         
         {/* Advanced Scheduler */}
         <AdvancedScheduler
-          isOpen={schedulerOpen}
-          onClose={handleCloseScheduler}
-          onSchedule={handleScheduleContent}
-          contentItems={selectedContentForScheduling}
+          isOpen={false}
+          onClose={() => {}}
+          onSchedule={() => {}}
+          contentItems={[]}
         />
       </Container>
     </PageLayout>

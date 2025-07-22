@@ -13,7 +13,7 @@ const SidebarContainer = styled.aside`
   backdrop-filter: var(--backdrop-blur);
   border-right: 1px solid var(--border-glass);
   box-shadow: var(--glass-shadow);
-  z-index: 1200;
+  z-index: 1300;
   transition: var(--transition);
   display: flex;
   flex-direction: column;
@@ -316,10 +316,13 @@ const LogoutButton = styled(SettingsButton)`
 
 const Overlay = styled.div`
   position: fixed;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: var(--header-height);
+  bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 1199;
+  z-index: 1200;
   opacity: ${props => props.show ? '1' : '0'};
   visibility: ${props => props.show ? 'visible' : 'hidden'};
   transition: var(--transition);

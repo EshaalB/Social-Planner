@@ -1,10 +1,10 @@
 import React from 'react'
 import styled from 'styled-components'
-import { motion } from 'framer-motion'
 import WelcomeCard from '../components/dashboard/WelcomeCard'
 import StatsCards from '../components/dashboard/StatsCards'
 import TodoList from '../components/dashboard/TodoList'
 import AnalyticsChart from '../components/dashboard/AnalyticsChart'
+import { motion } from 'framer-motion'
 
 const DashboardContainer = styled.div`
   display: grid;
@@ -12,6 +12,9 @@ const DashboardContainer = styled.div`
   grid-template-rows: auto 1fr;
   gap: 32px;
   height: 100%;
+  margin-left: 40px;
+  margin-right: -80px;
+  margin-top: 40px;
   min-height: calc(100vh - 140px);
   
   @media (max-width: 1400px) {
@@ -22,7 +25,17 @@ const DashboardContainer = styled.div`
   @media (max-width: 1200px) {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto;
-    gap: 24px;
+    gap: 24px; 
+  }
+  
+  @media (max-width: 700px) {
+    display: flex;
+    flex-direction: column; 
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    gap: 16px;
+    padding: 8px 0;
   }
 `;
 
@@ -40,6 +53,12 @@ const TopSection = styled.div`
     grid-template-columns: 1fr;
     gap: 24px;
   }
+  
+  @media (max-width: 700px) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 `;
 
 const LeftColumn = styled.div`
@@ -54,6 +73,10 @@ const LeftColumn = styled.div`
   @media (max-width: 1200px) {
     gap: 24px;
   }
+  
+  @media (max-width: 700px) {
+    gap: 12px;
+  }
 `;
 
 const RightColumn = styled.div`
@@ -67,6 +90,10 @@ const RightColumn = styled.div`
   
   @media (max-width: 1200px) {
     gap: 24px;
+  }
+  
+  @media (max-width: 700px) {
+    gap: 12px;
   }
 `;
 
