@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import PageLayout from '../../layouts/Layout'
 import PageHeader from '../../components/PageHeader'
 import useStore from '../../context/store'
+import ActionButton from '../../components/ActionButton';
 import { 
   FiEdit3, 
   FiUpload, 
@@ -23,6 +24,47 @@ import {
   FiMessageCircle,
   FiBookmark
 } from 'react-icons/fi'
+import useFileImport from '../../hooks/useFileImport';
+import useToast from '../../hooks/useToast';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
+import Modal from '../../components/Modal';
+import Button from '../../components/Button';
+import useModal from '../../hooks/useModal';
+
+// Modal form styles for add modal
+const ModalForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+const ModalInput = styled.input`
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+  font-size: 15px;
+  color: var(--text-primary);
+  background: var(--glass-bg);
+  transition: border-color 0.2s;
+  &:focus {
+    border-color: var(--color-primary);
+    outline: none;
+  }
+`;
+const ModalTextarea = styled.textarea`
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+  font-size: 15px;
+  color: var(--text-primary);
+  background: var(--glass-bg);
+  min-height: 80px;
+  resize: vertical;
+  transition: border-color 0.2s;
+  &:focus {
+    border-color: var(--color-primary);
+    outline: none;
+  }
+`;
 
 const Container = styled.div`
   min-height: 100vh;
@@ -143,30 +185,6 @@ const ViewButton = styled.button`
   
   &:hover {
     color: ${props => props.$active ? 'white' : 'var(--text-primary)'};
-  }
-`;
-
-const ActionButton = styled.button`
-  background: ${props => props.$primary ? 'var(--linearPrimarySecondary)' : 'var(--glass-bg)'};
-  backdrop-filter: var(--backdrop-blur);
-  color: ${props => props.$primary ? 'white' : 'var(--text-secondary)'};
-  border: 1px solid ${props => props.$primary ? 'transparent' : 'var(--border-glass)'};
-  border-radius: var(--radius-md);
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-    color: ${props => props.$primary ? 'white' : 'white'};
-    ${props => !props.$primary && 'border-color: var(--border-accent);'}
   }
 `;
 
@@ -439,14 +457,18 @@ const EmptyState = styled.div`
 const Captions = () => {
   const navigate = useNavigate()
   const { getAssetsByType, addCaption } = useStore()
+  const { importFile } = useFileImport();
+  const { toast } = useToast();
+  const { isOpen: isAddOpen, open: openAdd, close: closeAdd } = useModal();
+  const [newCaption, setNewCaption] = useState({ title: '', text: '', platform: 'instagram', tone: 'casual', tags: '' });
   
   // Local state
   const [view, setView] = useState('grid')
   const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [filterPlatform, setFilterPlatform] = useState('all')
   const [filterTone, setFilterTone] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
-  const [importing, setImporting] = useState(false);
   const fileInputRef = React.useRef(null);
 
   // Get captions from store
@@ -504,9 +526,9 @@ const Captions = () => {
   
   // Filter and search
   const filteredCaptions = captions.filter(caption => {
-    const matchesSearch = caption.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         caption.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         caption.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesSearch = caption.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                         caption.text.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                         caption.tags.some(tag => tag.toLowerCase().includes(debouncedSearch.toLowerCase()))
     const matchesPlatform = filterPlatform === 'all' || caption.platform === filterPlatform
     const matchesTone = filterTone === 'all' || caption.tone === filterTone
     return matchesSearch && matchesPlatform && matchesTone
@@ -532,37 +554,15 @@ const Captions = () => {
     navigate('/assets')
   }
   
-  const handleImportFile = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        let importedData;
-        if (file.name.endsWith('.json')) {
-          importedData = JSON.parse(event.target.result);
-        } else if (file.name.endsWith('.csv')) {
-          // Simple CSV to array of objects (assumes header row)
-          const [header, ...rows] = event.target.result.split('\n').map(r => r.trim()).filter(Boolean);
-          const keys = header.split(',');
-          importedData = rows.map(row => {
-            const values = row.split(',');
-            return keys.reduce((obj, key, i) => ({ ...obj, [key]: values[i] }), {});
-          });
-        }
-        if (Array.isArray(importedData)) {
-          importedData.forEach(item => addCaption(item));
-        }
-      } catch {
-        alert('Error importing captions. Please check the file format.');
+  const handleImportFile = () => {
+    importFile(fileInputRef.current?.files[0], (importedData) => {
+      if (Array.isArray(importedData)) {
+        importedData.forEach(item => addCaption(item));
+        toast('Captions imported successfully!', 'success');
+      } else {
+        toast('Error importing captions. Please check the file format.', 'error');
       }
-    };
-    if (file.name.endsWith('.json') || file.name.endsWith('.csv')) {
-      reader.readAsText(file);
-    } else {
-      alert('Unsupported file type. Please use .json or .csv');
-    }
-    e.target.value = '';
+    });
   };
 
   const handleUpload = () => {
@@ -614,9 +614,9 @@ const Captions = () => {
           style={{ display: 'none' }}
         />
       </ActionButton>
-      <ActionButton $primary onClick={handleCreateNew}>
+      <ActionButton $primary onClick={openAdd}>
         <FiPlus />
-        Create New
+        Add New Caption
       </ActionButton>
     </div>
   )
@@ -835,6 +835,19 @@ const Captions = () => {
           )}
         </ContentArea>
       </Container>
+      <Modal isOpen={isAddOpen} onClose={closeAdd} title="Add New Caption">
+        <ModalForm onSubmit={e => {
+          e.preventDefault();
+          addCaption({ ...newCaption, id: Date.now() + Math.random() });
+          setNewCaption({ title: '', text: '', platform: 'instagram', tone: 'casual', tags: '' });
+          closeAdd();
+        }}>
+          <ModalInput placeholder="Title" value={newCaption.title} onChange={e => setNewCaption({ ...newCaption, title: e.target.value })} required />
+          <ModalTextarea placeholder="Text" value={newCaption.text} onChange={e => setNewCaption({ ...newCaption, text: e.target.value })} required />
+          <ModalInput placeholder="Tags (comma separated)" value={newCaption.tags} onChange={e => setNewCaption({ ...newCaption, tags: e.target.value })} />
+          <Button $primary type="submit">Submit</Button>
+        </ModalForm>
+      </Modal>
     </PageLayout>
   )
 }

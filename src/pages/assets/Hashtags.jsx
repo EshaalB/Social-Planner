@@ -5,6 +5,10 @@ import { useNavigate } from 'react-router-dom'
 import PageLayout from '../../layouts/Layout'
 import PageHeader from '../../components/PageHeader'
 import useStore from '../../context/store'
+import Button, { IconButton } from '../../components/Button';
+import ActionButton from '../../components/ActionButton';
+import Modal from '../../components/Modal';
+import useModal from '../../hooks/useModal';
 import { 
   FiHash, 
   FiUpload, 
@@ -24,6 +28,9 @@ import {
   FiUsers,
   FiBarChart2
 } from 'react-icons/fi'
+import useFileImport from '../../hooks/useFileImport';
+import useToast from '../../hooks/useToast';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -144,30 +151,6 @@ const ViewButton = styled.button`
   
   &:hover {
     color: ${props => props.$active ? 'white' : 'var(--text-primary)'};
-  }
-`;
-
-const ActionButton = styled.button`
-  background: ${props => props.$primary ? 'var(--linearPrimarySecondary)' : 'var(--glass-bg)'};
-  backdrop-filter: var(--backdrop-blur);
-  color: ${props => props.$primary ? 'white' : 'var(--text-secondary)'};
-  border: 1px solid ${props => props.$primary ? 'transparent' : 'var(--border-glass)'};
-  border-radius: var(--radius-md);
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-    color: ${props => props.$primary ? 'white' : 'white'};
-    ${props => !props.$primary && 'border-color: var(--border-accent);'}
   }
 `;
 
@@ -294,11 +277,17 @@ const ActionIcon = styled.button`
   justify-content: center;
   cursor: pointer;
   transition: var(--transition);
+  outline: none;
   
-  &:hover {
+  &:hover, &:focus {
     color: var(--text-primary);
     border-color: var(--border-accent);
+    background: var(--linearPrimarySecondary);
     transform: scale(1.1);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 `;
 
@@ -468,17 +457,55 @@ const EmptyState = styled.div`
   }
 `;
 
+const ModalForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+const ModalInput = styled.input`
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+  font-size: 15px;
+  color: var(--text-primary);
+  background: var(--glass-bg);
+  transition: border-color 0.2s;
+  &:focus {
+    border-color: var(--color-primary);
+    outline: none;
+  }
+`;
+const ModalTextarea = styled.textarea`
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+  font-size: 15px;
+  color: var(--text-primary);
+  background: var(--glass-bg);
+  min-height: 80px;
+  resize: vertical;
+  transition: border-color 0.2s;
+  &:focus {
+    border-color: var(--color-primary);
+    outline: none;
+  }
+`;
+
 const Hashtags = () => {
   const navigate = useNavigate()
   const { getAssetsByType, addHashtagSet } = useStore()
+  const { importFile, isImporting } = useFileImport();
+  const { showToast } = useToast();
+  const { isOpen: isAddOpen, open: openAdd, close: closeAdd } = useModal();
+  const [newHashtag, setNewHashtag] = useState({ title: '', hashtags: '', category: 'general', description: '' });
   
   // Local state
   const [view, setView] = useState('grid')
   const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [filterCategory, setFilterCategory] = useState('all')
   const [filterTrend, setFilterTrend] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
-  const [importing, setImporting] = useState(false);
   const fileInputRef = React.useRef(null);
 
   // Get hashtags from store
@@ -540,9 +567,9 @@ const Hashtags = () => {
   
   // Filter and search
   const filteredHashtags = hashtags.filter(hashtagSet => {
-    const matchesSearch = hashtagSet.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         hashtagSet.hashtags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         hashtagSet.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = hashtagSet.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                         hashtagSet.hashtags.some(tag => tag.toLowerCase().includes(debouncedSearch.toLowerCase())) ||
+                         hashtagSet.description.toLowerCase().includes(debouncedSearch.toLowerCase())
     const matchesCategory = filterCategory === 'all' || hashtagSet.category === filterCategory
     const matchesTrend = filterTrend === 'all' || hashtagSet.trend === filterTrend
     return matchesSearch && matchesCategory && matchesTrend
@@ -570,40 +597,7 @@ const Hashtags = () => {
     navigate('/assets')
   }
   
-  const handleImportFile = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        let importedData;
-        if (file.name.endsWith('.json')) {
-          importedData = JSON.parse(event.target.result);
-        } else if (file.name.endsWith('.csv')) {
-          // Simple CSV to array of objects (assumes header row)
-          const [header, ...rows] = event.target.result.split('\n').map(r => r.trim()).filter(Boolean);
-          const keys = header.split(',');
-          importedData = rows.map(row => {
-            const values = row.split(',');
-            return keys.reduce((obj, key, i) => ({ ...obj, [key]: values[i] }), {});
-          });
-        }
-        if (Array.isArray(importedData)) {
-          importedData.forEach(item => addHashtagSet(item));
-        }
-      } catch {
-        alert('Error importing hashtags. Please check the file format.');
-      }
-    };
-    if (file.name.endsWith('.json') || file.name.endsWith('.csv')) {
-      reader.readAsText(file);
-    } else {
-      alert('Unsupported file type. Please use .json or .csv');
-    }
-    e.target.value = '';
-  };
-
-  const handleUpload = () => {
+  const handleImportFile = () => {
     fileInputRef.current?.click();
   };
   
@@ -643,21 +637,34 @@ const Hashtags = () => {
   
   const headerActions = (
     <div style={{ display: 'flex', gap: '12px' }}>
-      <ActionButton onClick={handleUpload}>
+      <Button onClick={handleImportFile} disabled={isImporting}>
         <FiUpload />
         Import
         <input
           ref={fileInputRef}
           type="file"
           accept=".json,.csv"
-          onChange={handleImportFile}
+          onChange={importFile}
           style={{ display: 'none' }}
         />
-      </ActionButton>
-      <ActionButton $primary onClick={handleCreateNew}>
-        <FiPlus />
-        Create Set
-      </ActionButton>
+      </Button>
+      <Button $primary onClick={openAdd} style={{ marginBottom: 20 }}>
+        Add New Hashtag Set
+      </Button>
+      <Modal isOpen={isAddOpen} onClose={closeAdd} title="Add New Hashtag Set">
+        <ModalForm onSubmit={e => {
+          e.preventDefault();
+          addHashtagSet({ ...newHashtag, hashtags: newHashtag.hashtags.split(',').map(t => t.trim()).filter(Boolean), id: Date.now() + Math.random() });
+          setNewHashtag({ title: '', hashtags: '', category: 'general', description: '' });
+          closeAdd();
+        }}>
+          <ModalInput placeholder="Title" value={newHashtag.title} onChange={e => setNewHashtag({ ...newHashtag, title: e.target.value })} required />
+          <ModalTextarea placeholder="Hashtags (comma separated)" value={newHashtag.hashtags} onChange={e => setNewHashtag({ ...newHashtag, hashtags: e.target.value })} required />
+          <ModalInput placeholder="Category" value={newHashtag.category} onChange={e => setNewHashtag({ ...newHashtag, category: e.target.value })} />
+          <ModalTextarea placeholder="Description" value={newHashtag.description} onChange={e => setNewHashtag({ ...newHashtag, description: e.target.value })} />
+          <Button $primary type="submit">Submit</Button>
+        </ModalForm>
+      </Modal>
     </div>
   )
   
@@ -790,18 +797,18 @@ const Hashtags = () => {
                           </TrendingIndicator>
                         </HashtagTitle>
                         <HashtagActions className="hashtag-actions">
-                          <ActionIcon onClick={() => handleHashtagAction('view', hashtagSet)}>
+                          <IconButton onClick={() => handleHashtagAction('view', hashtagSet)} aria-label="View hashtag set">
                             <FiEye size={12} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleHashtagAction('copy', hashtagSet)}>
+                          </IconButton>
+                          <IconButton onClick={() => handleHashtagAction('copy', hashtagSet)} aria-label="Copy hashtag set">
                             <FiCopy size={12} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleHashtagAction('edit', hashtagSet)}>
+                          </IconButton>
+                          <IconButton onClick={() => handleHashtagAction('edit', hashtagSet)} aria-label="Edit hashtag set">
                             <FiHash size={12} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleHashtagAction('delete', hashtagSet)}>
+                          </IconButton>
+                          <IconButton onClick={() => handleHashtagAction('delete', hashtagSet)} aria-label="Delete hashtag set">
                             <FiTrash2 size={12} />
-                          </ActionIcon>
+                          </IconButton>
                         </HashtagActions>
                       </HashtagHeader>
                       
@@ -859,18 +866,18 @@ const Hashtags = () => {
                           </TrendingIndicator>
                         </ListTitle>
                         <ListActions>
-                          <ActionIcon onClick={() => handleHashtagAction('view', hashtagSet)}>
+                          <IconButton onClick={() => handleHashtagAction('view', hashtagSet)} aria-label="View hashtag set">
                             <FiEye size={12} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleHashtagAction('copy', hashtagSet)}>
+                          </IconButton>
+                          <IconButton onClick={() => handleHashtagAction('copy', hashtagSet)} aria-label="Copy hashtag set">
                             <FiCopy size={12} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleHashtagAction('edit', hashtagSet)}>
+                          </IconButton>
+                          <IconButton onClick={() => handleHashtagAction('edit', hashtagSet)} aria-label="Edit hashtag set">
                             <FiHash size={12} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleHashtagAction('delete', hashtagSet)}>
+                          </IconButton>
+                          <IconButton onClick={() => handleHashtagAction('delete', hashtagSet)} aria-label="Delete hashtag set">
                             <FiTrash2 size={12} />
-                          </ActionIcon>
+                          </IconButton>
                         </ListActions>
                       </ListHeader>
                       
@@ -913,10 +920,10 @@ const Hashtags = () => {
                 }
               </p>
               {!searchTerm && filterCategory === 'all' && filterTrend === 'all' && (
-                <ActionButton $primary onClick={handleCreateNew}>
+                <Button $primary onClick={openAdd}>
                   <FiPlus />
                   Create Hashtag Set
-                </ActionButton>
+                </Button>
               )}
             </EmptyState>
           )}

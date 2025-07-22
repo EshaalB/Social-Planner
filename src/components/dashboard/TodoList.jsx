@@ -476,4 +476,4 @@ const TodoListComponent = () => {
   )
 }
 
-export default TodoListComponent 
+export default React.memo(TodoListComponent); 

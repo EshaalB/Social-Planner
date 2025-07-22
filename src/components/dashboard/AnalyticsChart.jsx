@@ -75,27 +75,7 @@ const AnalyticsIcon = styled.div`
   box-shadow: var(--shadow-soft);
 `;
 
-const SettingsButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--glass-shadow);
-  
-  &:hover {
-    color: var(--text-primary);
-    border-color: var(--border-accent);
-    transform: scale(1.1);
-  }
-`;
+ 
 
 const ChartContainer = styled.div`
   height: 200px;
@@ -191,7 +171,7 @@ const SummaryItem = styled.div`
   }
 `;
 
-const AnalyticsChart = () => {
+const AnalyticsChart = (props) => {
   const { contents, getStats } = useStore()
 
   // Group content by week (last 8 weeks)
@@ -257,9 +237,7 @@ const AnalyticsChart = () => {
             <p>Track your performance</p>
           </div>
         </AnalyticsTitle>
-        <SettingsButton>
-          <FiSettings />
-        </SettingsButton>
+       
       </AnalyticsHeader>
       
       <ChartContainer>
@@ -302,4 +280,4 @@ const AnalyticsChart = () => {
   )
 }
 
-export default AnalyticsChart; 
+export default React.memo(AnalyticsChart); 

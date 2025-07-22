@@ -19,6 +19,8 @@ import {
   FiCopy,
   FiMoreHorizontal
 } from 'react-icons/fi'
+import Modal from '../components/Modal';
+import useModal from '../hooks/useModal';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -430,12 +432,15 @@ const EmptyState = styled.div`
 `;
 
 const Calendar = () => {
-  const { contents } = useStore()
+  const { contents, addContent, deleteMultipleContents } = useStore()
   
   // Calendar state
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [viewMode, setViewMode] = useState('month') // month, week, day
+  const { isOpen: eventModalOpen, open: openEventModal, close: closeEventModal } = useModal();
+  const [editingEvent, setEditingEvent] = useState(null)
+  const [toast, setToast] = useState(null)
   
   // Get current month info
   const currentMonth = currentDate.getMonth()
@@ -529,11 +534,52 @@ const Calendar = () => {
   
   // Handle event actions
   const handleEventAction = (action, event) => {
-    console.log(`${action} event:`, event.title)
+    if (action === 'edit') {
+      setEditingEvent(event)
+      openEventModal()
+    } else if (action === 'delete') {
+      if (window.confirm('Delete this event?')) {
+        deleteMultipleContents([event.id])
+        showToast('Event deleted')
+      }
+    } else if (action === 'view') {
+      setSelectedDate(new Date(event.scheduledDate))
+    }
   }
-  
+
   const handleCreateEvent = () => {
-    console.log('Create new event for:', selectedDate)
+    setEditingEvent({
+      title: '',
+      description: '',
+      scheduledDate: selectedDate.toISOString().slice(0, 16),
+      platform: 'Instagram',
+      id: null
+    })
+    openEventModal()
+  }
+
+  const handleEventModalSave = (eventData) => {
+    if (eventData.id) {
+      // Edit existing event
+      deleteMultipleContents([eventData.id])
+      showToast('Event updated')
+    } else {
+      showToast('Event added')
+    }
+    addContent({
+      ...eventData,
+      id: eventData.id || Date.now() + Math.random(),
+      scheduledDate: new Date(eventData.scheduledDate).toISOString(),
+      createdAt: eventData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+    closeEventModal()
+    setEditingEvent(null)
+  }
+
+  const handleEventModalClose = () => {
+    closeEventModal()
+    setEditingEvent(null)
   }
   
   const monthNames = [
@@ -560,6 +606,11 @@ const Calendar = () => {
       </ActionButton>
     </div>
   )
+  
+  const showToast = (msg) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
   
   return (
     <PageLayout>
@@ -750,9 +801,238 @@ const Calendar = () => {
             </SidebarSection>
           </Sidebar>
         </CalendarLayout>
+        <Modal isOpen={eventModalOpen} onClose={closeEventModal} title={editingEvent ? 'Edit Event' : 'Add Event'}>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (!editingEvent) {
+              handleEventModalSave({
+                ...editingEvent,
+                id: Date.now() + Math.random(),
+                scheduledDate: new Date(editingEvent.scheduledDate).toISOString(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              });
+            } else {
+              handleEventModalSave(editingEvent);
+            }
+          }}>
+            <div>
+              <label htmlFor="event-title">Title</label>
+              <input
+                type="text"
+                id="event-title"
+                name="title"
+                value={editingEvent?.title || ''}
+                onChange={(e) => setEditingEvent(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Title"
+                required
+                autoFocus
+              />
+            </div>
+            <div>
+              <label htmlFor="event-description">Description</label>
+              <textarea
+                id="event-description"
+                name="description"
+                value={editingEvent?.description || ''}
+                onChange={(e) => setEditingEvent(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Description"
+              />
+            </div>
+            <div>
+              <label htmlFor="event-scheduled-date">Scheduled Date</label>
+              <input
+                type="datetime-local"
+                id="event-scheduled-date"
+                name="scheduledDate"
+                value={editingEvent?.scheduledDate || selectedDate.toISOString().slice(0, 16)}
+                onChange={(e) => setEditingEvent(prev => ({ ...prev, scheduledDate: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="event-platform">Platform</label>
+              <select
+                id="event-platform"
+                name="platform"
+                value={editingEvent?.platform || 'Instagram'}
+                onChange={(e) => setEditingEvent(prev => ({ ...prev, platform: e.target.value }))}
+              >
+                <option value="Instagram">Instagram</option>
+                <option value="Twitter">Twitter</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Facebook">Facebook</option>
+                <option value="YouTube">YouTube</option>
+                <option value="TikTok">TikTok</option>
+              </select>
+            </div>
+            <div>
+              <button type="submit">{editingEvent ? 'Save' : 'Add'} Event</button>
+            </div>
+          </form>
+        </Modal>
+        {toast && (
+          <ToastContainer>
+            <ToastMessage>{toast}</ToastMessage>
+          </ToastContainer>
+        )}
       </Container>
     </PageLayout>
   )
+}
+
+// Add styled-components for modal
+const ModalOverlay = motion(styled.div`
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`);
+const ModalForm = motion(styled.form`
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  min-width: 320px;
+  max-width: 400px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`);
+const ModalTitle = styled.h3`
+  margin: 0;
+`;
+const ModalInput = styled.input`
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+`;
+const ModalTextarea = styled.textarea`
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  min-height: 60px;
+`;
+const ModalSelect = styled.select`
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+`;
+const ModalActions = styled.div`
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+`;
+const ModalButton = styled.button`
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: ${props => props.primary ? '#6366f1' : '#eee'};
+  color: ${props => props.primary ? '#fff' : 'inherit'};
+`;
+const ErrorText = styled.div`
+  color: #e1306c;
+  font-size: 13px;
+  margin-top: -8px;
+`;
+
+// Add Toast component
+const ToastContainer = styled.div`
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+const ToastMessage = styled.div`
+  background: #6366f1;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 15px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  animation: fadein 0.2s, fadeout 0.2s 2.8s;
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeout { from { opacity: 1; } to { opacity: 0; } }
+`;
+
+// EventModal component
+function EventModal({ event, onSave, onClose, date }) {
+  const [form, setForm] = useState({
+    title: event?.title || '',
+    description: event?.description || '',
+    scheduledDate: event?.scheduledDate || date.toISOString().slice(0, 16),
+    platform: event?.platform || 'Instagram',
+    id: event?.id || null
+  })
+  const [error, setError] = useState('');
+  // ESC key and click-outside to close
+  React.useEffect(() => {
+    const onKeyDown = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+  const overlayRef = React.useRef();
+  const handleOverlayClick = (e) => {
+    if (e.target === overlayRef.current) onClose();
+  };
+  const handleChange = (e) => {
+    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+    setError('');
+  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.title.trim()) return setError('Title is required');
+    onSave(form);
+  };
+  return (
+    <AnimatePresence>
+      <ModalOverlay
+        ref={overlayRef}
+        onClick={handleOverlayClick}
+        aria-modal="true"
+        role="dialog"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <ModalForm
+          onSubmit={handleSubmit}
+          aria-labelledby="event-modal-title"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ModalTitle id="event-modal-title">{form.id ? 'Edit Event' : 'Add Event'}</ModalTitle>
+          <ModalInput name="title" value={form.title} onChange={handleChange} placeholder="Title" required aria-required="true" autoFocus />
+          {error && <ErrorText>{error}</ErrorText>}
+          <ModalTextarea name="description" value={form.description} onChange={handleChange} placeholder="Description" />
+          <ModalInput name="scheduledDate" type="datetime-local" value={form.scheduledDate} onChange={handleChange} required />
+          <ModalSelect name="platform" value={form.platform} onChange={handleChange}>
+            <option value="Instagram">Instagram</option>
+            <option value="Twitter">Twitter</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Facebook">Facebook</option>
+            <option value="YouTube">YouTube</option>
+            <option value="TikTok">TikTok</option>
+          </ModalSelect>
+          <ModalActions>
+            <ModalButton type="button" onClick={onClose}>Cancel</ModalButton>
+            <ModalButton type="submit" primary>{form.id ? 'Save' : 'Add'}</ModalButton>
+          </ModalActions>
+        </ModalForm>
+      </ModalOverlay>
+    </AnimatePresence>
+  );
 }
 
 export default Calendar 

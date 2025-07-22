@@ -3,92 +3,10 @@ import styled from 'styled-components'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiUpload, FiX, FiImage, FiVideo, FiFile, FiCheck, FiEdit3, FiTrash2, FiTag, FiSave } from 'react-icons/fi'
 import useStore from '../context/store'
-
-const UploaderModal = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 20px;
-`;
-
-const UploaderContent = styled(motion.div)`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-large), var(--shadow-glow);
-  padding: 32px;
-  max-width: 900px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimarySecondary);
-    opacity: 0.03;
-    border-radius: var(--radius-xl);
-    pointer-events: none;
-  }
-`;
-
-const UploaderHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  position: relative;
-  z-index: 1;
-`;
-
-const UploaderTitle = styled.h2`
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  
-  /* Gradient text effect */
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-`;
-
-const CloseButton = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  
-  &:hover {
-    color: var(--text-primary);
-    border-color: var(--border-accent);
-    transform: scale(1.1);
-  }
-`;
+import { IconButton } from './Button';
+import Modal from './Modal';
+import useModal from '../hooks/useModal';
+import useToast from '../hooks/useToast';
 
 const DropZone = styled.div`
   border: 2px dashed ${props => props.$isDragOver ? 'var(--color-primary)' : 'var(--border-glass)'};
@@ -254,26 +172,6 @@ const FileActions = styled.div`
   align-items: center;
 `;
 
-const FileActionButton = styled.button`
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: ${props => props.$variant === 'danger' ? '#ef4444' : 'var(--glass-bg)'};
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid ${props => props.$variant === 'danger' ? '#ef4444' : 'var(--border-glass)'};
-  color: ${props => props.$variant === 'danger' ? 'white' : 'var(--text-muted)'};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  
-  &:hover {
-    transform: scale(1.1);
-    color: ${props => props.$variant === 'danger' ? 'white' : 'var(--text-primary)'};
-  }
-`;
-
 const ProgressBar = styled.div`
   width: 100%;
   height: 4px;
@@ -324,6 +222,7 @@ const AssetUploader = ({ isOpen, onClose, assetType = 'images' }) => {
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef(null)
+  const { toast } = useToast();
   
   const getFileType = (file) => {
     if (file.type.startsWith('image/')) return 'image'
@@ -449,8 +348,10 @@ const AssetUploader = ({ isOpen, onClose, assetType = 'images' }) => {
       
       setFiles([])
       onClose()
+      toast('success', `Uploaded ${files.length} file${files.length !== 1 ? 's' : ''}`);
     } catch (error) {
       console.error('Upload failed:', error)
+      toast('error', 'Failed to upload files.');
     } finally {
       setUploading(false)
     }
@@ -468,132 +369,110 @@ const AssetUploader = ({ isOpen, onClose, assetType = 'images' }) => {
   
   return (
     <AnimatePresence>
-      <UploaderModal
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
-        <UploaderContent
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          onClick={(e) => e.stopPropagation()}
+      <Modal isOpen={isOpen} onClose={onClose} title={`Upload ${assetType}`}>
+        <DropZone
+          $isDragOver={isDragOver}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
         >
-          <UploaderHeader>
-            <UploaderTitle>
-              <FiUpload />
-              Upload {assetType.charAt(0).toUpperCase() + assetType.slice(1)}
-            </UploaderTitle>
-            <CloseButton onClick={onClose}>
-              <FiX size={20} />
-            </CloseButton>
-          </UploaderHeader>
+          <DropZoneIcon>
+            <FiUpload />
+          </DropZoneIcon>
+          <DropZoneText>
+            Drag & drop your files here
+          </DropZoneText>
+          <DropZoneSubtext>
+            or click to browse your computer
+          </DropZoneSubtext>
+          <BrowseButton type="button">
+            Browse Files
+          </BrowseButton>
           
-          <DropZone
-            $isDragOver={isDragOver}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <DropZoneIcon>
-              <FiUpload />
-            </DropZoneIcon>
-            <DropZoneText>
-              Drag & drop your files here
-            </DropZoneText>
-            <DropZoneSubtext>
-              or click to browse your computer
-            </DropZoneSubtext>
-            <BrowseButton type="button">
-              Browse Files
-            </BrowseButton>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept={assetType === 'images' ? 'image/*' : assetType === 'videos' ? 'video/*' : '*/*'}
-              onChange={handleFileSelect}
-              style={{ display: 'none' }}
-            />
-          </DropZone>
-          
-          {files.length > 0 && (
-            <FileList>
-              <AnimatePresence mode="popLayout">
-                {files.map((fileObj) => (
-                  <FileItem
-                    key={fileObj.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    layout
-                  >
-                    {fileObj.preview && (fileObj.type === 'image' || fileObj.type === 'video') ? (
-                      <FilePreview>
-                        {fileObj.type === 'image' ? (
-                          <img src={fileObj.preview} alt={fileObj.name} />
-                        ) : (
-                          <video src={fileObj.preview} />
-                        )}
-                      </FilePreview>
-                    ) : (
-                      <FileIcon>
-                        {getFileIcon(fileObj.type)}
-                      </FileIcon>
-                    )}
-                    
-                    <FileInfo>
-                      <FileName>{fileObj.name}</FileName>
-                      <FileSize>{formatFileSize(fileObj.size)}</FileSize>
-                      
-                      <FileMetadata>
-                        <MetadataInput
-                          placeholder="Title"
-                          value={fileObj.metadata.title}
-                          onChange={(e) => updateFileMetadata(fileObj.id, 'title', e.target.value)}
-                        />
-                        <MetadataInput
-                          placeholder="Description"
-                          value={fileObj.metadata.description}
-                          onChange={(e) => updateFileMetadata(fileObj.id, 'description', e.target.value)}
-                        />
-                        <MetadataInput
-                          placeholder="Tags (comma separated)"
-                          value={fileObj.metadata.tags}
-                          onChange={(e) => updateFileMetadata(fileObj.id, 'tags', e.target.value)}
-                        />
-                      </FileMetadata>
-                      
-                      {fileObj.progress > 0 && (
-                        <ProgressBar>
-                          <ProgressFill $progress={fileObj.progress} />
-                        </ProgressBar>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept={assetType === 'images' ? 'image/*' : assetType === 'videos' ? 'video/*' : '*/*'}
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+        </DropZone>
+        
+        {files.length > 0 && (
+          <FileList>
+            <AnimatePresence mode="popLayout">
+              {files.map((fileObj) => (
+                <FileItem
+                  key={fileObj.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  layout
+                >
+                  {fileObj.preview && (fileObj.type === 'image' || fileObj.type === 'video') ? (
+                    <FilePreview>
+                      {fileObj.type === 'image' ? (
+                        <img src={fileObj.preview} alt={fileObj.name} />
+                      ) : (
+                        <video src={fileObj.preview} />
                       )}
-                    </FileInfo>
+                    </FilePreview>
+                  ) : (
+                    <FileIcon>
+                      {getFileIcon(fileObj.type)}
+                    </FileIcon>
+                  )}
+                  
+                  <FileInfo>
+                    <FileName>{fileObj.name}</FileName>
+                    <FileSize>{formatFileSize(fileObj.size)}</FileSize>
                     
-                    <FileActions>
-                      <FileActionButton onClick={() => removeFile(fileObj.id)} $variant="danger">
-                        <FiTrash2 size={16} />
-                      </FileActionButton>
-                    </FileActions>
-                  </FileItem>
-                ))}
-              </AnimatePresence>
-              
-              <UploadButton
-                onClick={handleUpload}
-                disabled={uploading || files.length === 0}
-              >
-                {uploading ? <FiUpload className="animate-spin" /> : <FiCheck />}
-                {uploading ? 'Uploading...' : `Upload ${files.length} file${files.length !== 1 ? 's' : ''}`}
-              </UploadButton>
-            </FileList>
-          )}
-        </UploaderContent>
-      </UploaderModal>
+                    <FileMetadata>
+                      <MetadataInput
+                        placeholder="Title"
+                        value={fileObj.metadata.title}
+                        onChange={(e) => updateFileMetadata(fileObj.id, 'title', e.target.value)}
+                      />
+                      <MetadataInput
+                        placeholder="Description"
+                        value={fileObj.metadata.description}
+                        onChange={(e) => updateFileMetadata(fileObj.id, 'description', e.target.value)}
+                      />
+                      <MetadataInput
+                        placeholder="Tags (comma separated)"
+                        value={fileObj.metadata.tags}
+                        onChange={(e) => updateFileMetadata(fileObj.id, 'tags', e.target.value)}
+                      />
+                    </FileMetadata>
+                    
+                    {fileObj.progress > 0 && (
+                      <ProgressBar>
+                        <ProgressFill $progress={fileObj.progress} />
+                      </ProgressBar>
+                    )}
+                  </FileInfo>
+                  
+                  <FileActions>
+                    <IconButton aria-label="Remove file" onClick={() => removeFile(fileObj.id)} variant="danger">
+                      <FiTrash2 size={16} />
+                    </IconButton>
+                  </FileActions>
+                </FileItem>
+              ))}
+            </AnimatePresence>
+            
+            <UploadButton
+              onClick={handleUpload}
+              disabled={uploading || files.length === 0}
+            >
+              {uploading ? <FiUpload className="animate-spin" /> : <FiCheck />}
+              {uploading ? 'Uploading...' : `Upload ${files.length} file${files.length !== 1 ? 's' : ''}`}
+            </UploadButton>
+          </FileList>
+        )}
+      </Modal>
     </AnimatePresence>
   )
 }

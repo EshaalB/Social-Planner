@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -6,6 +6,7 @@ import PageLayout from '../../layouts/Layout'
 import PageHeader from '../../components/PageHeader'
 import AssetUploader from '../../components/AssetUploader'
 import useStore from '../../context/store'
+import Button, { IconButton } from '../../components/Button';
 import { 
   FiImage, 
   FiUpload, 
@@ -22,6 +23,7 @@ import {
   FiTag,
   FiArrowLeft
 } from 'react-icons/fi'
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -149,30 +151,6 @@ const ViewButton = styled.button`
   }
 `;
 
-const ActionButton = styled.button`
-  background: ${props => props.$primary ? 'var(--linearPrimarySecondary)' : 'var(--glass-bg)'};
-  backdrop-filter: var(--backdrop-blur);
-  color: ${props => props.$primary ? 'white' : 'var(--text-secondary)'};
-  border: 1px solid ${props => props.$primary ? 'transparent' : 'var(--border-glass)'};
-  border-radius: var(--radius-md);
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-    color: ${props => props.$primary ? 'white' : 'white'};
-    ${props => !props.$primary && 'border-color: var(--border-accent);'}
-  }
-`;
-
 const ResultsInfo = styled.div`
   display: flex;
   align-items: center;
@@ -250,26 +228,6 @@ const ImageActions = styled.div`
   gap: 6px;
   opacity: 0;
   transition: var(--transition);
-`;
-
-const ActionIcon = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  border: none;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  
-  &:hover {
-    background: rgba(0, 0, 0, 0.9);
-    transform: scale(1.1);
-  }
 `;
 
 const ImageInfo = styled.div`
@@ -398,7 +356,8 @@ const Images = () => {
   
   // Local state
   const [view, setView] = useState('grid')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [filterCategory, setFilterCategory] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
   const [uploaderOpen, setUploaderOpen] = useState(false);
@@ -441,8 +400,8 @@ const Images = () => {
   
   // Filter and search
   const filteredImages = images.filter(image => {
-    const matchesSearch = image.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         image.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesSearch = image.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                         image.tags.some(tag => tag.toLowerCase().includes(debouncedSearch.toLowerCase()))
     const matchesCategory = filterCategory === 'all' || image.category === filterCategory
     return matchesSearch && matchesCategory
   })
@@ -471,10 +430,6 @@ const Images = () => {
     setUploaderOpen(true);
   };
   
-  const handleCreateNew = () => {
-    console.log('Create new image')
-  }
-  
   const handleImageAction = (action, image) => {
     console.log(`${action} for image:`, image.name)
   }
@@ -496,14 +451,10 @@ const Images = () => {
   
   const headerActions = (
     <div style={{ display: 'flex', gap: '12px' }}>
-      <ActionButton onClick={handleUpload}>
+      <Button onClick={handleUpload}>
         <FiUpload />
         Upload
-      </ActionButton>
-      <ActionButton $primary onClick={handleCreateNew}>
-        <FiPlus />
-        Create New
-      </ActionButton>
+      </Button>
     </div>
   )
   
@@ -602,18 +553,10 @@ const Images = () => {
                       <ImagePreview>
                         <FiImage />
                         <ImageActions className="image-actions">
-                          <ActionIcon onClick={() => handleImageAction('view', image)}>
-                            <FiEye size={14} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleImageAction('edit', image)}>
-                            <FiEdit3 size={14} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleImageAction('download', image)}>
-                            <FiDownload size={14} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleImageAction('delete', image)}>
+                          {/* Only keep delete */}
+                          <IconButton aria-label="Delete image" onClick={() => handleImageAction('delete', image)}>
                             <FiTrash2 size={14} />
-                          </ActionIcon>
+                          </IconButton>
                         </ImageActions>
                       </ImagePreview>
                       <ImageInfo>
@@ -664,18 +607,10 @@ const Images = () => {
                         </ImageTags>
                       </ListContent>
                       <ListActions>
-                        <ActionIcon onClick={() => handleImageAction('view', image)}>
-                          <FiEye size={14} />
-                        </ActionIcon>
-                        <ActionIcon onClick={() => handleImageAction('edit', image)}>
-                          <FiEdit3 size={14} />
-                        </ActionIcon>
-                        <ActionIcon onClick={() => handleImageAction('download', image)}>
-                          <FiDownload size={14} />
-                        </ActionIcon>
-                        <ActionIcon onClick={() => handleImageAction('delete', image)}>
+                        {/* Only keep delete */}
+                        <IconButton aria-label="Delete image" onClick={() => handleImageAction('delete', image)}>
                           <FiTrash2 size={14} />
-                        </ActionIcon>
+                        </IconButton>
                       </ListActions>
                     </ListItem>
                   ))}
@@ -692,10 +627,10 @@ const Images = () => {
                 }
               </p>
               {!searchTerm && filterCategory === 'all' && (
-                <ActionButton $primary onClick={handleUpload}>
+                <Button $primary onClick={handleUpload}>
                   <FiUpload />
                   Upload Images
-                </ActionButton>
+                </Button>
               )}
             </EmptyState>
           )}

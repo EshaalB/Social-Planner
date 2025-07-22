@@ -130,20 +130,14 @@ const ProgressFill = styled.div`
   transition: width 0.6s ease-out;
 `;
 
-const StatsCards = () => {
+const StatsCards = (props) => {
   const { contents, getStats, getAssetStats } = useStore()
   
   // Get real stats
   const contentStats = getStats()
   const assetStats = getAssetStats ? getAssetStats() : { images: { total: 0 }, videos: { total: 0 }, captions: { total: 0 }, hashtags: { total: 0 } }
   
-  // Calculate engagement metrics (simulated based on content count)
-  const calculateEngagement = () => {
-    const totalContent = contentStats.total
-    if (totalContent === 0) return 0
-    // Simulate engagement based on published content
-    return Math.min(95, (contentStats.published / totalContent) * 100 + Math.random() * 20)
-  }
+   
   
   // Calculate weekly progress
   const getWeeklyProgress = () => {
@@ -161,21 +155,10 @@ const StatsCards = () => {
     return Math.min(100, (weeklyContent / 5) * 100)
   }
   
-  // Get upcoming deadlines
-  const getUpcomingDeadlines = () => {
-    const today = new Date()
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
-    
-    return contents.filter(content => {
-      if (!content.scheduledDate || content.status === 'Published') return false
-      const scheduleDate = new Date(content.scheduledDate)
-      return scheduleDate >= today && scheduleDate <= nextWeek
-    }).length
-  }
-  
-  const engagement = calculateEngagement()
+   
+ 
   const weeklyProgress = getWeeklyProgress()
-  const upcomingDeadlines = getUpcomingDeadlines()
+ 
   const totalAssets = Object.values(assetStats).reduce((total, cat) => total + cat.total, 0)
   
   const statsData = [
@@ -199,16 +182,7 @@ const StatsCards = () => {
       trendText: weeklyProgress >= 80 ? 'Excellent!' : weeklyProgress >= 40 ? 'Good pace' : 'Need more content',
       progress: weeklyProgress
     },
-    {
-      label: 'Engagement Rate',
-      value: `${Math.round(engagement)}%`,
-      detail: 'Based on published content',
-      icon: <FiTrendingUp />,
-      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-      trend: engagement >= 70 ? 'up' : engagement >= 40 ? 'neutral' : 'down',
-      trendText: engagement >= 70 ? 'Great engagement!' : engagement >= 40 ? 'Growing audience' : 'Room to improve',
-      progress: engagement
-    },
+  
     {
       label: 'Assets Library',
       value: totalAssets,
@@ -219,16 +193,7 @@ const StatsCards = () => {
       trendText: totalAssets > 10 ? 'Rich library!' : totalAssets > 5 ? 'Building up' : 'Add more assets',
       progress: Math.min(100, (totalAssets / 20) * 100)
     },
-    {
-      label: 'Upcoming',
-      value: upcomingDeadlines,
-      detail: 'Scheduled for next 7 days',
-      icon: <FiCalendar />,
-      gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-      trend: upcomingDeadlines > 3 ? 'up' : upcomingDeadlines > 0 ? 'neutral' : null,
-      trendText: upcomingDeadlines > 3 ? 'Busy week ahead' : upcomingDeadlines > 0 ? 'Good planning' : 'Plan ahead',
-      progress: Math.min(100, (upcomingDeadlines / 7) * 100)
-    }
+   
   ]
   
   return (
@@ -270,4 +235,4 @@ const StatsCards = () => {
   )
 }
 
-export default StatsCards 
+export default React.memo(StatsCards); 

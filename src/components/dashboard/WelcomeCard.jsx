@@ -180,14 +180,6 @@ const WelcomeCard = () => {
   
   const todayCount = getTodayContent()
   
-  // Dynamic motivation messages
-  const getMotivation = () => {
-    if (stats.total === 0) return "Ready to create something amazing? Let's start your content journey!"
-    if (todayCount > 0) return `You have ${todayCount} content pieces scheduled for today. You're on fire! 🔥`
-    if (upcomingCount > 0) return `${upcomingCount} content pieces planned for this week. Keep up the momentum!`
-    if (stats.drafts > 0) return `${stats.drafts} drafts waiting to be published. Time to bring them to life!`
-    return "Your content strategy is looking great! Ready to create more magic?"
-  }
   
   return (
     <WelcomeContainer>
@@ -207,9 +199,7 @@ const WelcomeCard = () => {
           </WelcomeIcon>
         </WelcomeHeader>
         
-        <MotivationText>
-          {getMotivation()}
-        </MotivationText>
+     
       </div>
       
       <StatsRow>

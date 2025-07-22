@@ -429,14 +429,7 @@ const Assets = () => {
 
   const headerActions = (
     <QuickActions>
-      <QuickActionButton onClick={handleUpload}>
-        <FiUpload />
-        Upload Files
-      </QuickActionButton>
-      <QuickActionButton $primary onClick={handleCreateNew}>
-        <FiPlus />
-        Create New
-      </QuickActionButton>
+      {/* Remove the Create New button from headerActions in Assets.jsx */}
     </QuickActions>
   )
 

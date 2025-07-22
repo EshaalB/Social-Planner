@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import { motion } from 'framer-motion'
 import { FiEdit2, FiTrash2, FiHash } from 'react-icons/fi'
+import { IconButton } from './Button';
 
 const CardContainer = styled(motion.article)`
   position: relative;
@@ -143,26 +144,6 @@ const QuickActions = styled.div`
   ${CardContainer}:hover & {
     opacity: 1;
     transform: translateY(0);
-  }
-`;
-
-const QuickActionButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
   }
 `;
 
@@ -524,20 +505,20 @@ const ContentCard = ({
           <TypeBadge>{type}</TypeBadge>
           <QuickActions className="card-actions">
             {onEdit && (
-              <QuickActionButton 
+              <IconButton 
                 aria-label="Edit content" 
                 onClick={(e) => { e.stopPropagation(); onEdit(); }}
               >
                 <FiEdit2 size={14} />
-              </QuickActionButton>
+              </IconButton>
             )}
             {onDelete && (
-              <QuickActionButton 
+              <IconButton 
                 aria-label="Delete content" 
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
               >
                 <FiTrash2 size={14} />
-              </QuickActionButton>
+              </IconButton>
             )}
           </QuickActions>
         </CardHeader>
@@ -581,4 +562,4 @@ const ContentCard = ({
   )
 }
 
-export default ContentCard
+export default React.memo(ContentCard);

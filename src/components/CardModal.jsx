@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiX, FiType, FiTag, FiLayers, FiClock, FiCheckCircle, FiFileText, FiEdit3 } from 'react-icons/fi'
+import Modal from './Modal';
+import useModal from '../hooks/useModal';
 
 const ModalOverlay = styled(motion.div)`
   position: fixed;
@@ -427,178 +429,162 @@ const CardModal = ({ open, onClose, onAddCard, editCard = null, loading = false 
   return (
     <AnimatePresence>
       {open && (
-        <ModalOverlay
-          variants={overlayVariants}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-          onClick={(e) => e.target === e.currentTarget && handleClose()}
+        <Modal
+          isOpen={open}
+          onClose={handleClose}
+          title={editCard ? 'Edit Content' : 'Create New Content'}
+          onSubmit={handleSubmit}
+          loading={loading}
+          onCancel={handleClose}
         >
-          <ModalContent
-            variants={modalVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ModalHeader>
-              <ModalTitle>
-                {editCard ? 'Edit Content' : 'Create New Content'}
-              </ModalTitle>
-              <CloseButton onClick={handleClose} disabled={loading}>
-                <FiX size={20} />
-              </CloseButton>
-            </ModalHeader>
-
-            <Form onSubmit={handleSubmit}>
-              <FormRow>
-                <FormGroup>
-                  <FormLabel>
-                    <FiType size={16} />
-                    Content Type
-                  </FormLabel>
-                  <InputContainer>
-                    <FormSelect
-                      name="type"
-                      value={form.type}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select type...</option>
-                      {typeOptions.map(option => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </FormSelect>
-                    <InputIcon><FiType size={16} /></InputIcon>
-                  </InputContainer>
-                  {errors.type && <ErrorMessage>{errors.type}</ErrorMessage>}
-                </FormGroup>
-
-                <FormGroup>
-                  <FormLabel>
-                    <FiLayers size={16} />
-                    Platform
-                  </FormLabel>
-                  <InputContainer>
-                    <FormSelect
-                      name="platform"
-                      value={form.platform}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select platform...</option>
-                      {platformOptions.map(option => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </FormSelect>
-                    <InputIcon><FiLayers size={16} /></InputIcon>
-                  </InputContainer>
-                  {errors.platform && <ErrorMessage>{errors.platform}</ErrorMessage>}
-                </FormGroup>
-              </FormRow>
+          <Form onSubmit={handleSubmit}>
+            <FormRow>
+              <FormGroup>
+                <FormLabel>
+                  <FiType size={16} />
+                  Content Type
+                </FormLabel>
+                <InputContainer>
+                  <FormSelect
+                    name="type"
+                    value={form.type}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select type...</option>
+                    {typeOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </FormSelect>
+                  <InputIcon><FiType size={16} /></InputIcon>
+                </InputContainer>
+                {errors.type && <ErrorMessage>{errors.type}</ErrorMessage>}
+              </FormGroup>
 
               <FormGroup>
                 <FormLabel>
-                  <FiEdit3 size={16} />
-                  Title
+                  <FiLayers size={16} />
+                  Platform
+                </FormLabel>
+                <InputContainer>
+                  <FormSelect
+                    name="platform"
+                    value={form.platform}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select platform...</option>
+                    {platformOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </FormSelect>
+                  <InputIcon><FiLayers size={16} /></InputIcon>
+                </InputContainer>
+                {errors.platform && <ErrorMessage>{errors.platform}</ErrorMessage>}
+              </FormGroup>
+            </FormRow>
+
+            <FormGroup>
+              <FormLabel>
+                <FiEdit3 size={16} />
+                Title
+              </FormLabel>
+              <InputContainer>
+                <FormInput
+                  name="title"
+                  placeholder="Enter content title..."
+                  value={form.title}
+                  onChange={handleChange}
+                  required
+                />
+                <InputIcon><FiEdit3 size={16} /></InputIcon>
+              </InputContainer>
+              {errors.title && <ErrorMessage>{errors.title}</ErrorMessage>}
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>
+                <FiFileText size={16} />
+                Description
+              </FormLabel>
+              <InputContainer>
+                <FormTextarea
+                  name="description"
+                  placeholder="Describe your content..."
+                  value={form.description}
+                  onChange={handleChange}
+                  required
+                />
+                <InputIcon><FiFileText size={16} /></InputIcon>
+              </InputContainer>
+              {errors.description && <ErrorMessage>{errors.description}</ErrorMessage>}
+            </FormGroup>
+
+            <FormRow>
+              <FormGroup>
+                <FormLabel>
+                  <FiTag size={16} />
+                  Tags
                 </FormLabel>
                 <InputContainer>
                   <FormInput
-                    name="title"
-                    placeholder="Enter content title..."
-                    value={form.title}
+                    name="tags"
+                    placeholder="marketing, social, trending"
+                    value={form.tags}
                     onChange={handleChange}
-                    required
                   />
-                  <InputIcon><FiEdit3 size={16} /></InputIcon>
+                  <InputIcon><FiTag size={16} /></InputIcon>
                 </InputContainer>
-                {errors.title && <ErrorMessage>{errors.title}</ErrorMessage>}
               </FormGroup>
 
               <FormGroup>
                 <FormLabel>
-                  <FiFileText size={16} />
-                  Description
+                  <FiCheckCircle size={16} />
+                  Status
                 </FormLabel>
                 <InputContainer>
-                  <FormTextarea
-                    name="description"
-                    placeholder="Describe your content..."
-                    value={form.description}
+                  <FormSelect
+                    name="status"
+                    value={form.status}
                     onChange={handleChange}
                     required
-                  />
-                  <InputIcon><FiFileText size={16} /></InputIcon>
+                  >
+                    {statusOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </FormSelect>
+                  <InputIcon><FiCheckCircle size={16} /></InputIcon>
                 </InputContainer>
-                {errors.description && <ErrorMessage>{errors.description}</ErrorMessage>}
+                {errors.status && <ErrorMessage>{errors.status}</ErrorMessage>}
               </FormGroup>
+            </FormRow>
 
-              <FormRow>
-                <FormGroup>
-                  <FormLabel>
-                    <FiTag size={16} />
-                    Tags
-                  </FormLabel>
-                  <InputContainer>
-                    <FormInput
-                      name="tags"
-                      placeholder="marketing, social, trending"
-                      value={form.tags}
-                      onChange={handleChange}
-                    />
-                    <InputIcon><FiTag size={16} /></InputIcon>
-                  </InputContainer>
-                </FormGroup>
+            <FormGroup>
+              <FormLabel>
+                <FiClock size={16} />
+                Schedule Date & Time
+              </FormLabel>
+              <InputContainer>
+                <FormInput
+                  name="scheduledDate"
+                  type="datetime-local"
+                  value={form.scheduledDate}
+                  onChange={handleChange}
+                />
+                <InputIcon><FiClock size={16} /></InputIcon>
+              </InputContainer>
+            </FormGroup>
 
-                <FormGroup>
-                  <FormLabel>
-                    <FiCheckCircle size={16} />
-                    Status
-                  </FormLabel>
-                  <InputContainer>
-                    <FormSelect
-                      name="status"
-                      value={form.status}
-                      onChange={handleChange}
-                      required
-                    >
-                      {statusOptions.map(option => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </FormSelect>
-                    <InputIcon><FiCheckCircle size={16} /></InputIcon>
-                  </InputContainer>
-                  {errors.status && <ErrorMessage>{errors.status}</ErrorMessage>}
-                </FormGroup>
-              </FormRow>
-
-              <FormGroup>
-                <FormLabel>
-                  <FiClock size={16} />
-                  Schedule Date & Time
-                </FormLabel>
-                <InputContainer>
-                  <FormInput
-                    name="scheduledDate"
-                    type="datetime-local"
-                    value={form.scheduledDate}
-                    onChange={handleChange}
-                  />
-                  <InputIcon><FiClock size={16} /></InputIcon>
-                </InputContainer>
-              </FormGroup>
-
-              <ButtonGroup>
-                <Button type="button" onClick={handleClose} disabled={loading}>
-                  Cancel
-                </Button>
-                <Button type="submit" primary disabled={loading}>
-                  {loading ? 'Saving...' : editCard ? 'Update Content' : 'Create Content'}
-                </Button>
-              </ButtonGroup>
-            </Form>
-          </ModalContent>
-        </ModalOverlay>
+            <ButtonGroup>
+              <Button type="button" onClick={handleClose} disabled={loading}>
+                Cancel
+              </Button>
+              <Button type="submit" primary disabled={loading}>
+                {loading ? 'Saving...' : editCard ? 'Update Content' : 'Create Content'}
+              </Button>
+            </ButtonGroup>
+          </Form>
+        </Modal>
       )}
     </AnimatePresence>
   );

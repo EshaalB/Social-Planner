@@ -2,21 +2,8 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiX, FiCopy, FiEdit3, FiZap, FiHeart, FiShare2, FiTrendingUp, FiCamera, FiVideo, FiFileText, FiClock } from 'react-icons/fi'
-
-const TemplatesModal = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 20px;
-`;
+import Modal from './Modal';
+import useModal from '../hooks/useModal';
 
 const TemplatesContent = styled(motion.div)`
   background: var(--glass-bg);
@@ -232,8 +219,9 @@ const TemplateAction = styled.button`
   }
 `;
 
-const ContentTemplates = ({ isOpen, onClose, onSelectTemplate }) => {
+const ContentTemplates = ({ onSelectTemplate }) => {
   const [activeCategory, setActiveCategory] = useState('social')
+  const { isOpen, onClose, onOpen } = useModal();
   
   const templates = {
     social: [
@@ -381,16 +369,9 @@ const ContentTemplates = ({ isOpen, onClose, onSelectTemplate }) => {
     console.log('Template copied to clipboard!')
   }
   
-  if (!isOpen) return null
-  
   return (
     <AnimatePresence>
-      <TemplatesModal
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
+      <Modal isOpen={isOpen} onClose={onClose} title="Content Templates">
         <TemplatesContent
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -454,7 +435,7 @@ const ContentTemplates = ({ isOpen, onClose, onSelectTemplate }) => {
             ))}
           </TemplatesGrid>
         </TemplatesContent>
-      </TemplatesModal>
+      </Modal>
     </AnimatePresence>
   )
 }

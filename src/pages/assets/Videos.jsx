@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import PageLayout from '../../layouts/Layout'
 import PageHeader from '../../components/PageHeader'
 import useStore from '../../context/store'
+import ActionButton from '../../components/ActionButton';
+import Button, { IconButton } from '../../components/Button';
 import { 
   FiVideo, 
   FiUpload, 
@@ -22,6 +24,9 @@ import {
   FiArrowLeft,
   FiPlay
 } from 'react-icons/fi'
+import useToast from '../../hooks/useToast';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
+import AssetUploader from '../../components/AssetUploader';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -142,30 +147,6 @@ const ViewButton = styled.button`
   
   &:hover {
     color: ${props => props.$active ? 'white' : 'var(--text-primary)'};
-  }
-`;
-
-const ActionButton = styled.button`
-  background: ${props => props.$primary ? 'var(--linearPrimarySecondary)' : 'var(--glass-bg)'};
-  backdrop-filter: var(--backdrop-blur);
-  color: ${props => props.$primary ? 'white' : 'var(--text-secondary)'};
-  border: 1px solid ${props => props.$primary ? 'transparent' : 'var(--border-glass)'};
-  border-radius: var(--radius-md);
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-    color: ${props => props.$primary ? 'white' : 'white'};
-    ${props => !props.$primary && 'border-color: var(--border-accent);'}
   }
 `;
 
@@ -461,13 +442,16 @@ const EmptyState = styled.div`
 const Videos = () => {
   const navigate = useNavigate()
   const { getAssetsByType } = useStore()
+  const { toast } = useToast();
   
   // Local state
   const [view, setView] = useState('grid')
   const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [filterFormat, setFilterFormat] = useState('all')
   const [filterQuality, setFilterQuality] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
+  const [uploaderOpen, setUploaderOpen] = useState(false);
   
   // Get videos from store
   const allVideos = getAssetsByType ? getAssetsByType('videos') : []
@@ -528,8 +512,8 @@ const Videos = () => {
   
   // Filter and search
   const filteredVideos = videos.filter(video => {
-    const matchesSearch = video.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesSearch = video.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                         video.tags.some(tag => tag.toLowerCase().includes(debouncedSearch.toLowerCase()))
     const matchesFormat = filterFormat === 'all' || video.format === filterFormat
     const matchesQuality = filterQuality === 'all' || video.quality === filterQuality
     return matchesSearch && matchesFormat && matchesQuality
@@ -558,16 +542,15 @@ const Videos = () => {
   }
   
   const handleUpload = () => {
-    console.log('Upload videos')
-  }
-  
-  const handleCreateNew = () => {
-    console.log('Create new video')
-  }
+    setUploaderOpen(true);
+  };
   
   const handleVideoAction = (action, video) => {
-    console.log(`${action} for video:`, video.name)
-  }
+    toast({
+      type: 'info',
+      message: `${action} for video: ${video.name}`,
+    });
+  };
   
   const formats = ['all', 'mp4', 'mov', 'avi', 'webm', 'mkv']
   const qualities = ['all', '4K', 'HD', 'SD']
@@ -580,6 +563,7 @@ const Videos = () => {
   ]
   
   const totalDuration = videos.reduce((acc, video) => {
+    if (!video.duration || typeof video.duration !== 'string' || !video.duration.includes(':')) return acc;
     const [min, sec] = video.duration.split(':').map(Number)
     return acc + min * 60 + sec
   }, 0)
@@ -602,10 +586,6 @@ const Videos = () => {
       <ActionButton onClick={handleUpload}>
         <FiUpload />
         Upload
-      </ActionButton>
-      <ActionButton $primary onClick={handleCreateNew}>
-        <FiPlus />
-        Create New
       </ActionButton>
     </div>
   )
@@ -723,31 +703,23 @@ const Videos = () => {
                         </PlayButton>
                         <VideoDuration>{video.duration}</VideoDuration>
                         <VideoActions className="video-actions">
-                          <ActionIcon onClick={() => handleVideoAction('view', video)}>
-                            <FiEye size={14} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleVideoAction('edit', video)}>
-                            <FiEdit3 size={14} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleVideoAction('download', video)}>
-                            <FiDownload size={14} />
-                          </ActionIcon>
-                          <ActionIcon onClick={() => handleVideoAction('delete', video)}>
+                          {/* Only keep delete */}
+                          <ActionButton aria-label="Delete video" onClick={() => handleVideoAction('delete', video)}>
                             <FiTrash2 size={14} />
-                          </ActionIcon>
+                          </ActionButton>
                         </VideoActions>
                       </VideoPreview>
                       <VideoInfo>
                         <VideoTitle>{video.name}</VideoTitle>
                         <VideoMeta>
                           <span>{video.size}</span>
-                          <span>•</span>
+                          <span>\u2022</span>
                           <span>{video.resolution}</span>
-                          <span>•</span>
+                          <span>\u2022</span>
                           <QualityBadge $quality={video.quality}>
                             {video.quality}
                           </QualityBadge>
-                          <span>•</span>
+                          <span>\u2022</span>
                           <span>{video.format.toUpperCase()}</span>
                         </VideoMeta>
                         <VideoTags>
@@ -781,13 +753,13 @@ const Videos = () => {
                         <ListTitle>{video.name}</ListTitle>
                         <ListMeta>
                           <span>{video.duration}</span>
-                          <span>•</span>
+                          <span>\u2022</span>
                           <span>{video.size}</span>
-                          <span>•</span>
+                          <span>\u2022</span>
                           <QualityBadge $quality={video.quality}>
                             {video.quality}
                           </QualityBadge>
-                          <span>•</span>
+                          <span>\u2022</span>
                           <span>{video.format.toUpperCase()}</span>
                         </ListMeta>
                         <VideoTags>
@@ -800,18 +772,10 @@ const Videos = () => {
                         </VideoTags>
                       </ListContent>
                       <ListActions>
-                        <ActionIcon onClick={() => handleVideoAction('view', video)}>
-                          <FiEye size={14} />
-                        </ActionIcon>
-                        <ActionIcon onClick={() => handleVideoAction('edit', video)}>
-                          <FiEdit3 size={14} />
-                        </ActionIcon>
-                        <ActionIcon onClick={() => handleVideoAction('download', video)}>
-                          <FiDownload size={14} />
-                        </ActionIcon>
-                        <ActionIcon onClick={() => handleVideoAction('delete', video)}>
+                        {/* Only keep delete */}
+                        <ActionButton aria-label="Delete video" onClick={() => handleVideoAction('delete', video)}>
                           <FiTrash2 size={14} />
-                        </ActionIcon>
+                        </ActionButton>
                       </ListActions>
                     </ListItem>
                   ))}
@@ -821,20 +785,10 @@ const Videos = () => {
           ) : (
             <EmptyState>
               <h3>No videos found</h3>
-              <p>
-                {searchTerm || filterFormat !== 'all' || filterQuality !== 'all'
-                  ? 'Try adjusting your search or filter criteria.'
-                  : 'Upload your first videos to get started.'
-                }
-              </p>
-              {!searchTerm && filterFormat === 'all' && filterQuality === 'all' && (
-                <ActionButton $primary onClick={handleUpload}>
-                  <FiUpload />
-                  Upload Videos
-                </ActionButton>
-              )}
+              <p>Try adjusting your filters or upload new videos to get started.</p>
             </EmptyState>
           )}
+          <AssetUploader isOpen={uploaderOpen} onClose={() => setUploaderOpen(false)} assetType="videos" />
         </ContentArea>
       </Container>
     </PageLayout>

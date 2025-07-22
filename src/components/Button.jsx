@@ -16,9 +16,37 @@ const StyledButton = styled.button`
   }
 `;
 
+// IconButton for icon-only actions
+export const IconButton = styled.button`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  outline: none;
+  
+  &:hover, &:focus {
+    color: var(--text-primary);
+    border-color: var(--border-accent);
+    background: var(--linearPrimarySecondary);
+    transform: scale(1.1);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+`;
+
 // Use StyledButton in your component
-const Button = ({ text}) => (
-  <StyledButton>{text}</StyledButton>
+const Button = (props) => (
+  <StyledButton {...props}>{props.children}</StyledButton>
 );
 
 export default Button;

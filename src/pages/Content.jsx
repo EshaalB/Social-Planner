@@ -13,6 +13,9 @@ import useKeyboardShortcuts, { SHORTCUTS } from '../hooks/useKeyboardShortcuts'
 import { AnimatePresence } from 'framer-motion'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { FiPlus, FiSearch, FiFilter, FiDownload, FiUpload, FiCalendar, FiZap, FiEdit3, FiFileText } from 'react-icons/fi'
+import ActionButton from '../components/ActionButton';
+import useToast from '../hooks/useToast';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -32,57 +35,30 @@ const HeaderActions = styled.div`
   }
 `;
 
-const ActionButton = styled.button`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  padding: 10px 16px;
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
+const QuickActionButton = styled.button`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
   display: flex;
   align-items: center;
-  gap: 8px;
-  position: relative;
-  overflow: hidden;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  outline: none;
   
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimarySecondary);
-    opacity: 0;
-    transition: var(--transition);
-  }
-  
-  &:hover {
-    color: white;
+  &:hover, &:focus {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
     border-color: var(--border-accent);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
+    transform: scale(1.1);
   }
-  
-  &:hover::before {
-    opacity: ${props => props.variant === 'primary' ? '1' : '0.1'};
-  }
-  
-  ${props => props.variant === 'primary' && `
-    background: var(--linearPrimarySecondary);
-    color: white;
-    border-color: transparent;
-    
-    &:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: var(--shadow-large);
-    }
-  `}
-  
-  & > * {
-    position: relative;
-    z-index: 1;
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 `;
 
@@ -247,6 +223,7 @@ const Content = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingContent, setEditingContent] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const [filterType, setFilterType] = useState('All Types')
   const [modalLoading, setModalLoading] = useState(false)
   const [templatesOpen, setTemplatesOpen] = useState(false)
@@ -258,8 +235,8 @@ const Content = () => {
     let filtered = contents
     
     // Apply search
-    if (searchTerm) {
-      filtered = searchContents(searchTerm)
+    if (debouncedSearch) {
+      filtered = searchContents(debouncedSearch)
     }
     
     // Apply type filter
@@ -268,7 +245,7 @@ const Content = () => {
     }
     
     return filtered
-  }, [contents, searchTerm, filterType, searchContents])
+  }, [contents, debouncedSearch, filterType, searchContents])
 
   // Real-time stats
   const stats = React.useMemo(() => getStats(), [contents, getStats])
