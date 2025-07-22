@@ -1,7 +1,10 @@
-import React from 'react'
+import React, { useState, Suspense } from 'react'
 import styled from 'styled-components'
 import PageLayout from '../layouts/Layout'
 import { FiUpload, FiImage, FiVideo, FiFile, FiGrid, FiList } from 'react-icons/fi'
+import useStore from '../context/store'
+import { motion, AnimatePresence } from 'framer-motion'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 const AssetsContainer = styled.div`
   display: flex;
@@ -86,6 +89,17 @@ const FilterSelect = styled.select`
   }
 `;
 
+const FilterInput = styled.input`
+  background: var(--bg-glass);
+  color: var(--text-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--sm) var(--md);
+  width: 100%;
+  margin-top: 0.5rem;
+  box-sizing: border-box;
+`;
+
 const AssetsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -167,28 +181,37 @@ const AssetType = styled.span`
   margin-left: auto;
 `;
 
-const Assets = () => {
-  const assets = [
-    { id: 1, name: 'Product Photo 1', type: 'image', size: '2.4 MB', date: '2024-01-15', icon: '🖼️' },
-    { id: 2, name: 'Brand Video', type: 'video', size: '15.2 MB', date: '2024-01-14', icon: '🎥' },
-    { id: 3, name: 'Logo Design', type: 'image', size: '1.8 MB', date: '2024-01-13', icon: '🎨' },
-    { id: 4, name: 'Content Guidelines', type: 'document', size: '0.8 MB', date: '2024-01-12', icon: '📄' },
-    { id: 5, name: 'Tutorial Screenshot', type: 'image', size: '3.1 MB', date: '2024-01-11', icon: '📸' },
-    { id: 6, name: 'Product Demo', type: 'video', size: '28.5 MB', date: '2024-01-10', icon: '🎬' }
-  ]
+const MemoAssetCard = React.memo(({ asset }) => (
+  <motion.div
+    key={asset.id}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.3 }}
+  >
+    <AssetCard>
+      <AssetIcon>{asset.icon}</AssetIcon>
+      <AssetInfo>
+        <AssetName>{asset.name}</AssetName>
+        <AssetMeta>{asset.size} • {asset.date}</AssetMeta>
+      </AssetInfo>
+      <AssetType>{asset.type}</AssetType>
+    </AssetCard>
+  </motion.div>
+))
 
-  const renderAsset = (asset) => {
-    return (
-      <AssetCard key={asset.id}>
-        <AssetIcon>{asset.icon}</AssetIcon>
-        <AssetInfo>
-          <AssetName>{asset.name}</AssetName>
-          <AssetMeta>{asset.size} • {asset.date}</AssetMeta>
-        </AssetInfo>
-        <AssetType>{asset.type}</AssetType>
-      </AssetCard>
-    )
-  }
+const Assets = () => {
+  const assets = useStore(s => s.assets)
+  const assetFilter = useStore(s => s.assetFilter)
+  const setAssetFilter = useStore(s => s.setAssetFilter)
+  const [view, setView] = useState('grid')
+
+  // Filtering logic
+  const filtered = assets.filter(asset => {
+    const typeMatch = assetFilter.type === 'all' || asset.type === assetFilter.type
+    const searchMatch = asset.name.toLowerCase().includes(assetFilter.search.toLowerCase())
+    return typeMatch && searchMatch
+  })
 
   return (
     <PageLayout title="Assets">
@@ -205,25 +228,58 @@ const Assets = () => {
 
         <ControlsSection>
           <ViewToggle>
-            <ViewButton>
+            <ViewButton onClick={() => setView('grid')} $active={view === 'grid'}>
               <FiGrid /> Grid View
             </ViewButton>
-            <ViewButton>
+            <ViewButton onClick={() => setView('list')} $active={view === 'list'}>
               <FiList /> List View
             </ViewButton>
           </ViewToggle>
 
-          <FilterSelect>
+          <FilterSelect value={assetFilter.type} onChange={e => setAssetFilter({ type: e.target.value })}>
             <option value="all">All Files</option>
             <option value="image">Images</option>
             <option value="video">Videos</option>
             <option value="document">Documents</option>
           </FilterSelect>
+          <FilterInput
+            type="text"
+            placeholder="Search by name..."
+            value={assetFilter.search}
+            onChange={e => setAssetFilter({ search: e.target.value })}
+          />
         </ControlsSection>
 
-        <AssetsGrid>
-          {assets.map(renderAsset)}
-        </AssetsGrid>
+        {view === 'grid' ? (
+          <AssetsGrid>
+            <AnimatePresence>
+              {filtered.map(asset => <MemoAssetCard key={asset.id} asset={asset} />)}
+            </AnimatePresence>
+          </AssetsGrid>
+        ) : (
+          <AssetsList>
+            <AnimatePresence>
+              {filtered.map(asset => (
+                <motion.div
+                  key={asset.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AssetItem>
+                    <AssetIcon>{asset.icon}</AssetIcon>
+                    <AssetInfo>
+                      <AssetName>{asset.name}</AssetName>
+                      <AssetMeta>{asset.size} • {asset.date}</AssetMeta>
+                    </AssetInfo>
+                    <AssetType>{asset.type}</AssetType>
+                  </AssetItem>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </AssetsList>
+        )}
       </AssetsContainer>
     </PageLayout>
   )

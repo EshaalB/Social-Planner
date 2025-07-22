@@ -3,20 +3,28 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [mode, setMode] = useState(() => {
+  const [theme, setTheme] = useState(() => {
     return localStorage.getItem("sp-theme") || "dark";
   });
 
-  const toggleMode = useCallback(() => {
-    setMode((prev) => (prev === "light" ? "dark" : "light"));
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("sp-theme", mode);
-    document.documentElement.setAttribute('data-theme', mode);
-  }, [mode]);
+    localStorage.setItem("sp-theme", theme);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
-  const value = useMemo(() => ({ mode, setMode, toggleMode }), [mode, toggleMode]);
+  const value = useMemo(() => ({ 
+    theme, 
+    setTheme, 
+    toggleTheme,
+    // Legacy support for existing components
+    mode: theme,
+    setMode: setTheme,
+    toggleMode: toggleTheme
+  }), [theme, toggleTheme]);
 
   return (
     <ThemeContext.Provider value={value}>
