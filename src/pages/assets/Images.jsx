@@ -570,7 +570,14 @@ const Images = () => {
                       <ImagePreview>
                         {/* If image.url exists, show preview with loading="lazy" */}
                         {image.url ? (
-                          <img src={image.url} alt={image.name} loading="lazy" aria-label={`Preview of ${image.name}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                          <img 
+                            src={image.url} 
+                            alt={image.name} 
+                            loading="lazy" 
+                            aria-label={`Preview of ${image.name}`} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} 
+                            onError={e => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentNode && (e.target.parentNode.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' fill=\'currentColor\' viewBox=\'0 0 24 24\'><path d=\'M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zm-2 0H5V5h14zm-7-7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm-6 7l3.5-4.5 2.5 3.01L17.5 13l3.5 4.5z\'/></svg>'); }}
+                          />
                         ) : (
                           <FiImage />
                         )}

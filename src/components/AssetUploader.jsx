@@ -332,20 +332,15 @@ const AssetUploader = ({ isOpen, onClose, assetType = 'images' }) => {
           size: formatFileSize(fileObj.size),
           date: new Date().toISOString().split('T')[0],
           type: fileObj.type,
-          url: fileObj.preview || '#', // In real app, this would be uploaded URL
+          url: fileObj.preview || fileObj.url || '#', // Always set url for images/videos
           originalName: fileObj.name
         }
         
         addAsset(assetType, assetData)
       }
       
-      // Clean up and close
-      files.forEach(file => {
-        if (file.preview) {
-          URL.revokeObjectURL(file.preview)
-        }
-      })
-      
+      // Do not revoke preview URLs so that previews persist in the asset grid
+
       setFiles([])
       onClose()
       toast('success', `Uploaded ${files.length} file${files.length !== 1 ? 's' : ''}`);

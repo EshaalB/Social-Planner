@@ -648,7 +648,7 @@ const Hashtags = () => {
   
   const headerActions = (
     <div style={{ display: 'flex', gap: '12px' }}>
-      <Button onClick={handleImportFile} disabled={isImporting}>
+      <Button onClick={handleImportFile} disabled={isImporting} style={{ minHeight: 40, fontSize: 15, padding: '10px 20px' }}>
         <FiUpload />
         Import
         <input
@@ -659,7 +659,7 @@ const Hashtags = () => {
           style={{ display: 'none' }}
         />
       </Button>
-      <Button $primary onClick={openAdd} style={{ marginBottom: 20 }}>
+      <Button $primary onClick={openAdd} style={{ minHeight: 40, fontSize: 15, padding: '10px 20px' }}>
         Add New Hashtag Set
       </Button>
     </div>
@@ -917,7 +917,7 @@ const Hashtags = () => {
                 }
               </p>
               {!searchTerm && filterCategory === 'all' && filterTrend === 'all' && (
-                <Button $primary onClick={openAdd}>
+                <Button $primary onClick={openAdd} style={{ minHeight: 40, fontSize: 15, padding: '10px 20px' }}>
                   <FiPlus />
                   Create Hashtag Set
                 </Button>
@@ -937,7 +937,7 @@ const Hashtags = () => {
               <ModalTextarea placeholder="Hashtags (comma separated)" value={newHashtag.hashtags} onChange={e => setNewHashtag({ ...newHashtag, hashtags: e.target.value })} required />
               <ModalInput placeholder="Category" value={newHashtag.category} onChange={e => setNewHashtag({ ...newHashtag, category: e.target.value })} />
               <ModalTextarea placeholder="Description" value={newHashtag.description} onChange={e => setNewHashtag({ ...newHashtag, description: e.target.value })} />
-              <Button $primary type="submit">Submit</Button>
+              <Button $primary type="submit" style={{ minHeight: 40, fontSize: 15, padding: '10px 20px' }}>Submit</Button>
             </ModalForm>
           </Modal>
         )}

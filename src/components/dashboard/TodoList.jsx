@@ -238,6 +238,8 @@ const EmptyState = styled.div`
   }
 `;
 
+const ICONS = { FiEdit3, FiCalendar, FiImage, FiVideo, FiFileText, FiTrendingUp, FiClock, FiPlus, FiX, FiCheck, FiTrash2 };
+
 const TodoListComponent = () => {
   const { contents, getAssetStats } = useStore()
   const [completedTasks, setCompletedTasks] = useState(new Set())
@@ -263,12 +265,12 @@ const TodoListComponent = () => {
     // Drafts that need to be completed
     const drafts = contents.filter(content => content.status === 'Draft')
     if (drafts.length > 0) {
-      drafts.slice(0, 2).forEach((draft, index) => {
+      drafts.slice(0, 2).forEach((draft) => {
         todos.push({
           id: `draft-${draft.id}`,
           text: `Complete "${draft.title}"`,
           subtitle: `Finish and publish your ${draft.type.toLowerCase()} content`,
-          icon: <FiEdit3 />,
+          icon: 'FiEdit3',
           iconColor: '#f093fb',
           tag: 'Draft',
           tagColor: '#f093fb',
@@ -293,7 +295,7 @@ const TodoListComponent = () => {
         id: `scheduled-${content.id}`,
         text: `Publish "${content.title}"`,
         subtitle: `${content.platform} • ${content.type}`,
-        icon: <FiCalendar />,
+        icon: 'FiCalendar',
         iconColor: '#4facfe',
         tag: 'Today',
         tagColor: '#22c55e',
@@ -313,7 +315,7 @@ const TodoListComponent = () => {
         id: 'review-tomorrow',
         text: `Review tomorrow's content`,
         subtitle: `${tomorrowContent.length} pieces scheduled for tomorrow`,
-        icon: <FiClock />,
+        icon: 'FiClock',
         iconColor: '#fbbf24',
         tag: 'Tomorrow',
         tagColor: '#fbbf24',
@@ -330,7 +332,7 @@ const TodoListComponent = () => {
         id: 'add-images',
         text: 'Build your image library',
         subtitle: 'Add more images for future content',
-        icon: <FiImage />,
+        icon: 'FiImage',
         iconColor: '#667eea',
         tag: 'Assets',
         tagColor: '#667eea',
@@ -344,7 +346,7 @@ const TodoListComponent = () => {
         id: 'add-videos',
         text: 'Create video content',
         subtitle: 'Videos boost engagement significantly',
-        icon: <FiVideo />,
+        icon: 'FiVideo',
         iconColor: '#f5576c',
         tag: 'Strategy',
         tagColor: '#f5576c',
@@ -366,7 +368,7 @@ const TodoListComponent = () => {
         id: 'weekly-goal',
         text: 'Reach weekly content goal',
         subtitle: `${publishedThisWeek}/5 pieces published this week`,
-        icon: <FiTrendingUp />,
+        icon: 'FiTrendingUp',
         iconColor: '#22c55e',
         tag: 'Goal',
         tagColor: '#22c55e',
@@ -382,7 +384,7 @@ const TodoListComponent = () => {
           id: 'first-content',
           text: 'Create your first content',
           subtitle: 'Start your content journey with a simple post',
-          icon: <FiFileText />,
+          icon: 'FiFileText',
           iconColor: '#6366f1',
           tag: 'Start',
           tagColor: '#6366f1',
@@ -393,7 +395,7 @@ const TodoListComponent = () => {
           id: 'upload-assets',
           text: 'Upload your first assets',
           subtitle: 'Add images and videos to your library',
-          icon: <FiImage />,
+          icon: 'FiImage',
           iconColor: '#8b5cf6',
           tag: 'Setup',
           tagColor: '#8b5cf6',
@@ -431,7 +433,7 @@ const TodoListComponent = () => {
           id: 'custom-' + Date.now(),
           text: newTodo,
           subtitle: '',
-          icon: <FiEdit3 />,
+          icon: 'FiEdit3',
           iconColor: '#a084ca',
           tag: 'Custom',
           tagColor: '#a084ca',
@@ -521,7 +523,7 @@ const TodoListComponent = () => {
                     
                     <TodoMeta>
                       <TodoIcon $color={todo.iconColor}>
-                        {todo.icon}
+                        {ICONS[todo.icon] ? React.createElement(ICONS[todo.icon]) : null}
                       </TodoIcon>
                       <TodoTag $color={todo.tagColor}>
                         {todo.tag}

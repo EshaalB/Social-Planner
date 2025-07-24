@@ -1,49 +1,16 @@
-# Social Planner (React + Vite)
+# Social Planner
 
-A modern, full-featured social content planning and asset management app built with React, Vite, Zustand, and Styled-Components.
+A modern web app for managing and scheduling your social media content and digital assets.
 
 ## Features
 
-- **Content Calendar:** Plan, create, edit, and schedule content across platforms with a beautiful drag-and-drop calendar UI.
-- **Asset Management:** Upload, preview, and organize images, videos, captions, and hashtags.
-- **Recent Assets:** Modern Lucide icons for each asset type, with color-coded backgrounds.
-- **Reusable Components:** Consistent UI with shared ActionButton, IconButton, and Modal components.
-- **Custom Hooks:** Clean logic for modals, toasts, file import, and more.
-- **Accessibility:** Keyboard navigation, focus outlines, and ARIA labels on all interactive elements.
-- **Responsive Design:** Mobile-friendly layouts and components.
-- **Performance:** Optimized with memoization, debounced search, code splitting, and lazy loading for images/videos.
-- **Toast & SweetAlert2 Notifications:** User feedback for all major actions and safe confirmations for deletes.
-- **File Import/Export:** Import/export content, captions, and hashtags via JSON/CSV.
-- **Error Boundaries:** Robust error handling for a smooth user experience.
-
-## Tech Stack
-
-- **React 18** (functional components, hooks, React.lazy/Suspense)
-- **Vite** (fast dev/build tooling)
-- **Zustand** (state management)
-- **Styled-Components** (CSS-in-JS)
-- **Framer Motion** (animations)
-- **React-Icons (Lucide, Feather, etc.)** (iconography)
-- **SweetAlert2** (confirmation dialogs)
-- **Jest/Testing Library** (recommended for tests)
-
-## Project Structure
-
-```
-social-planner/
-  src/
-    components/      # Reusable UI components (Button, Modal, AssetUploader, etc.)
-    hooks/           # Custom hooks (useModal, useToast, useFileImport, etc.)
-    pages/           # Main app pages (Content, Calendar, Assets, etc.)
-    context/         # Zustand store and context
-    layouts/         # Layout components
-    assets/          # Static assets
-    index.css        # Global styles
-    main.jsx         # App entry point
-  public/
-  package.json
-  README.md
-```
+- Upload, preview, and manage image and video assets
+- Persistent local previews for all uploads
+- Clean, responsive UI with fallback icons for missing media
+- Search, filter, and sort assets
+- Delete assets with confirmation
+- Light/dark mode support
+- All data stored locally in your browser (no server required)
 
 ## Getting Started
 
@@ -55,23 +22,16 @@ social-planner/
    ```bash
    npm run dev
    ```
-3. **Open in browser:**
-   Visit [http://localhost:5173](http://localhost:5173)
+3. **Open in your browser:**
+   Visit [http://localhost:5173](http://localhost:5173) (or the port shown in your terminal)
 
-## Best Practices
+## Usage Notes
 
-- Use shared components and custom hooks for all repeated UI/logic.
-- Keep all state in the store or via hooks; avoid prop drilling.
-- Write accessible, responsive, and well-animated UI.
-- Use `React.lazy` and `Suspense` for code splitting and lazy loading of heavy components and images/videos.
-- Add `aria-label`, `aria-modal`, and other ARIA attributes to all interactive elements and modals.
-- Remove unused code and imports regularly.
-- Add tests for all critical logic and flows.
+- Upload images and videos from the Assets section.
+- Previews persist after upload and page reloads.
+- If a preview fails to load, a fallback icon is shown.
+- All data is private and never leaves your device.
 
-## Contributing
+## License
 
-Pull requests and suggestions are welcome! Please open an issue or PR for any improvements or bug fixes.
-
----
-
-Built with ❤️ using React, Vite, and modern web best practices.
+MIT

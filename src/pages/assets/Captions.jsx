@@ -603,7 +603,7 @@ const Captions = () => {
   
   const headerActions = (
     <div style={{ display: 'flex', gap: '12px' }}>
-      <ActionButton onClick={handleUpload}>
+      <ActionButton onClick={handleUpload} style={{ minHeight: 40, fontSize: 15, padding: '10px 20px' }}>
         <FiUpload />
         Import
         <input
@@ -614,7 +614,7 @@ const Captions = () => {
           style={{ display: 'none' }}
         />
       </ActionButton>
-      <ActionButton $primary onClick={openAdd}>
+      <ActionButton $primary onClick={openAdd} style={{ minHeight: 40, fontSize: 15, padding: '10px 20px' }}>
         <FiPlus />
         Add New Caption
       </ActionButton>
@@ -826,7 +826,7 @@ const Captions = () => {
                 }
               </p>
               {!searchTerm && filterPlatform === 'all' && filterTone === 'all' && (
-                <ActionButton $primary onClick={handleCreateNew}>
+                <ActionButton $primary onClick={handleCreateNew} style={{ minHeight: 40, fontSize: 15, padding: '10px 20px' }}>
                   <FiPlus />
                   Create Caption
                 </ActionButton>
@@ -845,7 +845,7 @@ const Captions = () => {
           <ModalInput placeholder="Title" value={newCaption.title} onChange={e => setNewCaption({ ...newCaption, title: e.target.value })} required />
           <ModalTextarea placeholder="Text" value={newCaption.text} onChange={e => setNewCaption({ ...newCaption, text: e.target.value })} required />
           <ModalInput placeholder="Tags (comma separated)" value={newCaption.tags} onChange={e => setNewCaption({ ...newCaption, tags: e.target.value })} />
-          <Button $primary type="submit">Submit</Button>
+          <Button $primary type="submit" style={{ minHeight: 40, fontSize: 15, padding: '10px 20px' }}>Submit</Button>
         </ModalForm>
       </Modal>
     </PageLayout>
