@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import SideBar from '../components/SideBar'
 import Header from '../components/Header'
 import { FiMenu } from 'react-icons/fi'
- 
 
 const LayoutContainer = styled.div`
   display: flex;
@@ -11,109 +10,74 @@ const LayoutContainer = styled.div`
   width: 100vw;
   overflow-x: hidden;
   position: relative;
+  background: var(--bg-primary);
+`;
+
+const ContentArea = styled.div`
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding-left: var(--sidebar-width);
+
+  @media (max-width: 1024px) {
+    padding-left: 0;
+  }
 `;
 
 const MainContent = styled.main`
   flex: 1;
-  margin-top: 40px;
-  margin-right: 60px;
-  padding: 32px 24px;
-  background: transparent;
-  min-height: calc(100vh - var(--header-height));
-  transition: var(--transition);
+  padding: calc(var(--header-height) + var(--space-lg)) var(--space-lg) var(--space-2xl);
+  min-height: 100vh;
   box-sizing: border-box;
   overflow-x: hidden;
   position: relative;
-  
-  /* Subtle glass overlay */
-  &::before {
-    content: '';
-    position: fixed;
-    top: var(--header-height);
-    right: 0;
-    bottom: 0;
-    background: var(--glass-bg);
-    backdrop-filter: var(--backdrop-blur);
-    opacity: 0.3;
-    pointer-events: none;
-    z-index: -1;
-  }
-  
+
   @media (max-width: 1200px) {
-    padding: 24px 20px;
+    padding: calc(var(--header-height) + var(--space-md)) var(--space-md) var(--space-xl);
   }
-  
-  @media (max-width: 1024px) {
-    margin-left: 0;
-    max-width: 100vw;
-    padding: 20px 16px;
-    
-    &::before {
-      left: 0;
-    }
-  }
-  
+
   @media (max-width: 768px) {
-    padding: 16px;
+    padding: calc(var(--header-height) + var(--space-sm)) var(--space-sm) var(--space-lg);
   }
 `;
 
 const PageTitle = styled.h1`
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 600;
   line-height: 1.2;
   color: var(--text-primary);
-  margin-bottom: 32px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
-  
-  /* Gradient text effect */
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  
-  /* Subtle glow */
-  &::after {
-    content: attr(data-text);
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: var(--linearPrimaryAccent);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: blur(20px);
-    opacity: 0.3;
-    z-index: -1;
-  }
+  margin-bottom: var(--space-lg);
+  letter-spacing: -0.02em;
   
   @media (max-width: 768px) {
-    font-size: 24px;
-    margin-bottom: 24px;
+    font-size: 18px;
+    margin-bottom: var(--space-md);
   }
 `;
 
 const MenuButton = styled.button`
   position: fixed;
-  top: 16px;
+  top: 12px;
   left: 16px;
   z-index: 1400;
-  background: var(--linearPrimaryAccent);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 24px rgba(80, 0, 120, 0.15);
   cursor: pointer;
-  transition: box-shadow 0.2s, background 0.2s;
+  transition: background var(--transition-fast);
   outline: none;
-  border: 2px solid var(--border-glass);
+  
+  &:hover {
+    background: var(--hover-bg);
+  }
+
   @media (min-width: 1025px) {
     display: none;
   }
@@ -130,39 +94,36 @@ const Layout = ({ children, title }) => {
   const handleMenuToggle = () => setMobile(!isMobile);
   const handleSidebarClose = () => setMobile(false);
 
-    useEffect(() => {
+  useEffect(() => {
     document.documentElement.style.overflowX = 'hidden';
     document.body.style.overflowX = 'hidden'; 
     
     return () => {
       document.documentElement.style.overflowX = '';
       document.body.style.overflowX = '';
-      document.documentElement.style.removeProperty('--sidebar-width');
     };
   }, []);
 
   return (
     <LayoutContainer>
       <SideBar isMobile={isMobile} onClose={handleSidebarClose} />
-      <div style={{ flex: 1, maxWidth: '100vw', overflowX: 'hidden' }}>
+      <ContentArea>
         <Header />
         <MenuButton onClick={handleMenuToggle} aria-label="Open navigation menu">
           <span style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', border: 0 }}>Open navigation menu</span>
-          <FiMenu size={28} />
+          <FiMenu size={20} />
         </MenuButton>
         <MainContent>
           <ContentWrapper>
             {title && (
-              <PageTitle data-text={title}>{title}</PageTitle>
+              <PageTitle>{title}</PageTitle>
             )}
-            <div className="container">
-              {children}
-            </div>
+            {children}
           </ContentWrapper>
         </MainContent>
-      </div>
+      </ContentArea>
     </LayoutContainer>
   )
 }
 
-export default Layout
+export default Layout;

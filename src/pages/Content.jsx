@@ -10,7 +10,7 @@ import PageLayout from '../layouts/Layout'
 import PageHeader from '../components/PageHeader'
 import useStore from '../context/store'
 import useKeyboardShortcuts, { SHORTCUTS } from '../hooks/useKeyboardShortcuts'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { FiPlus, FiSearch, FiFilter, FiDownload, FiUpload, FiCalendar, FiZap, FiEdit3, FiFileText } from 'react-icons/fi'
 import ActionButton from '../components/ActionButton';
@@ -18,14 +18,14 @@ import useDebouncedValue from '../hooks/useDebouncedValue';
 import Swal from 'sweetalert2';
 
 const Container = styled.div`
-  min-height: 100vh;
-  padding: 20px;
-  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 `;
 
 const HeaderActions = styled.div`
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm);
   align-items: center;
   flex-wrap: wrap;
   
@@ -36,58 +36,46 @@ const HeaderActions = styled.div`
 `;
 
 const QuickActionButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   outline: none;
   
   &:hover, &:focus {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    background: var(--hover-bg);
     border-color: var(--border-accent);
-    transform: scale(1.1);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
   }
 `;
 
 const FilterRow = styled.div`
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
   align-items: center;
   flex-wrap: wrap;
-  
-  @media (max-width: 768px) {
-    gap: 12px;
-  }
 `;
 
 const FilterGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--glass-bg);
+  gap: var(--space-xs);
+  background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
-  padding: 8px 12px;
-  transition: var(--transition);
+  padding: 6px 10px;
+  transition: all var(--transition-fast);
   
   &:focus-within {
-    border-color: var(--border-accent);
-    box-shadow: var(--focus-ring);
+    border-color: var(--primary);
   }
 `;
 
@@ -95,13 +83,14 @@ const FilterIcon = styled.div`
   color: var(--text-muted);
   display: flex;
   align-items: center;
+  font-size: 13px;
 `;
 
 const SearchInput = styled.input`
   background: transparent;
   border: none;
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
   min-width: 200px;
   
@@ -118,12 +107,12 @@ const FilterSelect = styled.select`
   background: transparent;
   border: none;
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
   cursor: pointer;
   
   option {
-    background: var(--bg-card);
+    background: var(--bg-secondary);
     color: var(--text-primary);
   }
 `;
@@ -132,70 +121,67 @@ const ResultsInfo = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
-  padding: 12px 16px;
-  background: var(--glass-bg);
+  margin-bottom: var(--space-md);
+  padding: 8px 12px;
+  background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-secondary);
 `;
 
 const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: var(--space-sm);
   }
 `;
 
 const EmptyState = styled.div`
   text-align: center;
-  padding: 80px 20px;
-  background: var(--glass-bg);
+  padding: var(--space-2xl) var(--space-md);
+  background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  margin: 40px 0;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  margin: var(--space-lg) 0;
   
   h3 {
-    font-size: 20px;
+    font-size: 15px;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 8px;
-    background: var(--linearPrimaryAccent);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    margin-bottom: var(--space-xs);
   }
   
   p {
     color: var(--text-secondary);
-    margin-bottom: 24px;
-    line-height: 1.6;
+    margin-bottom: var(--space-md);
+    line-height: 1.5;
+    font-size: 13px;
   }
 `;
 
 const AutoSaveIndicator = styled.div`
   position: fixed;
-  top: 20px;
-  right: 20px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
+  top: 12px;
+  right: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
-  padding: 8px 16px;
+  padding: 6px 12px;
   color: var(--color-success);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  z-index: 100;
+  z-index: 1500;
   opacity: ${props => props.visible ? 1 : 0};
   transform: translateY(${props => props.visible ? 0 : -20}px);
-  transition: all 0.3s ease;
+  transition: all var(--transition-fast);
   pointer-events: none;
 `;
 
@@ -397,7 +383,11 @@ const Content = () => {
   )
 
   return (
-    <PageLayout>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Container>
         <AutoSaveIndicator visible={autoSaving}>
           Auto-saving...
@@ -504,7 +494,7 @@ const Content = () => {
           contentItems={[]}
         />
       </Container>
-    </PageLayout>
+    </motion.div>
   )
 }
 

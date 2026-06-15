@@ -227,14 +227,18 @@ const CaptionCard = styled(motion.div)`
   background: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-glass);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+  border-radius: var(--radius-xl);
+  padding: 22px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
   position: relative;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     box-shadow: var(--shadow-large);
     border-color: var(--border-accent);
   }
@@ -248,15 +252,16 @@ const CaptionHeader = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
 `;
 
 const CaptionTitle = styled.h4`
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--text-primary);
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.25;
   flex: 1;
 `;
 
@@ -622,7 +627,11 @@ const Captions = () => {
   )
   
   return (
-    <PageLayout>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Container>
         <BackButton onClick={handleBack}>
           <FiArrowLeft size={16} />
@@ -810,6 +819,15 @@ const Captions = () => {
                         <ToneBadge>{caption.tone}</ToneBadge>
                         <span>•</span>
                         <span>{caption.date}</span>
+                        <span>•</span>
+                        <CaptionTags style={{ display: 'inline-flex', marginLeft: '8px' }}>
+                          {caption.tags.slice(0, 2).map((tag, tagIndex) => (
+                            <Tag key={tagIndex}>#{tag}</Tag>
+                          ))}
+                          {caption.tags.length > 2 && (
+                            <Tag>+{caption.tags.length - 2} more</Tag>
+                          )}
+                        </CaptionTags>
                       </ListMeta>
                     </ListItem>
                   ))}
@@ -848,8 +866,8 @@ const Captions = () => {
           <Button $primary type="submit" style={{ minHeight: 40, fontSize: 15, padding: '10px 20px' }}>Submit</Button>
         </ModalForm>
       </Modal>
-    </PageLayout>
+    </motion.div>
   )
 }
 
-export default Captions 
+export default Captions

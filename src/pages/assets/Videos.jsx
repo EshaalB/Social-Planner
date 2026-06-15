@@ -189,14 +189,17 @@ const VideoCard = styled(motion.div)`
   background: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-glass);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   overflow: hidden;
   cursor: pointer;
-  transition: var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
   position: relative;
+  display: grid;
+  grid-template-rows: 220px auto;
+  min-height: 380px;
   
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     box-shadow: var(--shadow-large);
     border-color: var(--border-accent);
   }
@@ -212,15 +215,23 @@ const VideoCard = styled(motion.div)`
 
 const VideoPreview = styled.div`
   width: 100%;
-  height: 180px;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  height: 100%;
+  min-height: 220px;
+  background: linear-gradient(135deg, rgba(240,147,251,0.9) 0%, rgba(245,87,108,0.9) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 32px;
   position: relative;
   overflow: hidden;
+
+  video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
 const PlayButton = styled.button`
@@ -611,8 +622,12 @@ const Videos = () => {
     </div>
   )
   
-  return (
-    <PageLayout>
+  return ( 
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Container>
         <BackButton onClick={handleBack}>
           <FiArrowLeft size={16} />
@@ -748,13 +763,13 @@ const Videos = () => {
                         <VideoTitle>{video.name}</VideoTitle>
                         <VideoMeta>
                           <span>{video.size}</span>
-                          <span>\u2022</span>
+                          <span>•</span>
                           <span>{video.resolution}</span>
-                          <span>\u2022</span>
+                          <span>•</span>
                           <QualityBadge $quality={video.quality}>
                             {video.quality}
                           </QualityBadge>
-                          <span>\u2022</span>
+                          <span>•</span>
                           <span>{video.format ? video.format.toUpperCase() : ''}</span>
                         </VideoMeta>
                         <VideoTags>
@@ -788,13 +803,13 @@ const Videos = () => {
                         <ListTitle>{video.name}</ListTitle>
                         <ListMeta>
                           <span>{video.duration}</span>
-                          <span>\u2022</span>
+                          <span>•</span>
                           <span>{video.size}</span>
-                          <span>\u2022</span>
+                          <span>•</span>
                           <QualityBadge $quality={video.quality}>
                             {video.quality}
                           </QualityBadge>
-                          <span>\u2022</span>
+                          <span>•</span>
                           <span>{video.format ? video.format.toUpperCase() : ''}</span>
                         </ListMeta>
                         <VideoTags>
@@ -826,8 +841,8 @@ const Videos = () => {
           <AssetUploader isOpen={uploaderOpen} onClose={() => setUploaderOpen(false)} assetType="videos" />
         </ContentArea>
       </Container>
-    </PageLayout>
+    </motion.div>
   )
 }
 
-export default Videos 
+export default Videos

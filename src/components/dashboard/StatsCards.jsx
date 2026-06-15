@@ -5,41 +5,32 @@ import { motion } from 'framer-motion'
 import useStore from '../../context/store'
 
 const StatsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+  width: 100%;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
 `;
 
 const StatCard = styled(motion.div)`
-  background: var(--glass-bg);
+  background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  padding: 20px;
-  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-soft);
   position: relative;
   overflow: hidden;
-  transition: var(--transition);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   cursor: pointer;
   
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-large), var(--shadow-glow);
     border-color: var(--border-accent);
-  }
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimarySecondary);
-    opacity: 0.02;
-    transition: var(--transition);
-  }
-  
-  &:hover::before {
-    opacity: 0.04;
+    box-shadow: var(--shadow-medium);
   }
 `;
 
@@ -47,54 +38,42 @@ const StatHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-xs);
 `;
 
 const StatLabel = styled.div`
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 `;
 
 const StatIcon = styled.div`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: ${props => props.$gradient || 'var(--linearPrimaryAccent)'};
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 16px;
-  box-shadow: var(--shadow-soft);
-  transition: var(--transition);
-  
-  ${StatCard}:hover & {
-    transform: scale(1.1);
-    box-shadow: var(--shadow-medium);
-  }
+  color: var(--primary);
+  font-size: 14px;
 `;
 
 const StatContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2xs);
 `;
 
 const StatValue = styled.div`
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: -0.025em;
-  line-height: 1;
-  
-  /* Gradient text effect */
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 `;
 
 const StatDetail = styled.div`
@@ -110,36 +89,31 @@ const StatTrend = styled.div`
   font-size: 11px;
   color: ${props => props.$trend === 'up' ? 'var(--color-success)' : props.$trend === 'down' ? 'var(--color-error)' : 'var(--text-muted)'};
   font-weight: 600;
-  margin-top: 4px;
+  margin-top: 2px;
 `;
 
 const ProgressBar = styled.div`
   width: 100%;
   height: 4px;
-  background: var(--glass-bg);
-  border-radius: 2px;
-  margin-top: 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-xs);
   overflow: hidden;
 `;
 
 const ProgressFill = styled.div`
   height: 100%;
-  background: var(--linearPrimaryAccent);
-  border-radius: 2px;
+  background: var(--primary);
   width: ${props => props.$percentage}%;
-  transition: width 0.6s ease-out;
+  transition: width 0.4s ease-out;
 `;
 
-const StatsCards = (props) => {
+const StatsCards = () => {
   const { contents, getStats, getAssetStats } = useStore()
   
-  // Get real stats
   const contentStats = getStats()
   const assetStats = getAssetStats ? getAssetStats() : { images: { total: 0 }, videos: { total: 0 }, captions: { total: 0 }, hashtags: { total: 0 } }
   
-   
-  
-  // Calculate weekly progress
   const getWeeklyProgress = () => {
     const today = new Date()
     const weekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay())
@@ -151,14 +125,10 @@ const StatsCards = (props) => {
       return createDate >= weekStart && createDate < weekEnd
     }).length
     
-    // Target: 5 pieces per week
     return Math.min(100, (weeklyContent / 5) * 100)
   }
   
-   
- 
   const weeklyProgress = getWeeklyProgress()
- 
   const totalAssets = Object.values(assetStats).reduce((total, cat) => total + cat.total, 0)
   
   const statsData = [
@@ -167,7 +137,6 @@ const StatsCards = (props) => {
       value: contentStats.total,
       detail: `${contentStats.published} published, ${contentStats.drafts} drafts`,
       icon: <FiFile />,
-      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       trend: contentStats.total > 0 ? 'up' : null,
       trendText: contentStats.total > 0 ? '+12% this month' : 'Start creating!',
       progress: contentStats.total > 0 ? Math.min(100, (contentStats.published / contentStats.total) * 100) : 0
@@ -177,23 +146,19 @@ const StatsCards = (props) => {
       value: `${Math.round(weeklyProgress)}%`,
       detail: 'Goal: 5 pieces per week',
       icon: <FiTarget />,
-      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       trend: weeklyProgress >= 80 ? 'up' : weeklyProgress >= 40 ? 'neutral' : 'down',
       trendText: weeklyProgress >= 80 ? 'Excellent!' : weeklyProgress >= 40 ? 'Good pace' : 'Need more content',
       progress: weeklyProgress
     },
-  
     {
       label: 'Assets Library',
       value: totalAssets,
       detail: `${assetStats.images.total} images, ${assetStats.videos.total} videos`,
       icon: <FiEye />,
-      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
       trend: totalAssets > 10 ? 'up' : totalAssets > 5 ? 'neutral' : null,
       trendText: totalAssets > 10 ? 'Rich library!' : totalAssets > 5 ? 'Building up' : 'Add more assets',
       progress: Math.min(100, (totalAssets / 20) * 100)
     },
-   
   ]
   
   return (
@@ -201,15 +166,13 @@ const StatsCards = (props) => {
       {statsData.map((stat, index) => (
         <StatCard
           key={stat.label}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: index * 0.1 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          transition={{ duration: 0.2, delay: index * 0.05 }}
         >
           <StatHeader>
             <StatLabel>{stat.label}</StatLabel>
-            <StatIcon $gradient={stat.gradient}>
+            <StatIcon>
               {stat.icon}
             </StatIcon>
           </StatHeader>
@@ -220,7 +183,7 @@ const StatsCards = (props) => {
             
             {stat.trend && (
               <StatTrend $trend={stat.trend}>
-                <FiTrendingUp size={12} />
+                <FiTrendingUp size={11} />
                 {stat.trendText}
               </StatTrend>
             )}

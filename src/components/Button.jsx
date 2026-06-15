@@ -1,63 +1,53 @@
 import styled from 'styled-components';
 
 const StyledButton = styled.button`
-  background: var(--linearPrimarySecondary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-lg);
-  padding: 14px 32px;
-  font-size: 1.1rem;
-  font-weight: 700;
+  background: var(--primary);
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
-  box-shadow: var(--shadow-medium);
+  transition: all var(--transition-fast);
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: var(--space-2xs);
   outline: none;
 
   &:hover, &:focus {
-    background: var(--linearPrimaryAccent);
-    transform: translateY(-2px) scale(1.03);
-    box-shadow: var(--shadow-large);
+    filter: brightness(1.1);
   }
-  &:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+  
+  &:active {
+    filter: brightness(0.95);
   }
 `;
 
-// IconButton for icon-only actions
 export const IconButton = styled.button`
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   outline: none;
   
   &:hover, &:focus {
     color: var(--text-primary);
     border-color: var(--border-accent);
-    background: var(--linearPrimarySecondary);
-    transform: scale(1.1);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+    background: var(--hover-bg);
   }
 `;
 
-// Use StyledButton in your component
 const Button = (props) => (
   <StyledButton {...props}>{props.children}</StyledButton>
 );
 
-export default Button;
+export default Button;

@@ -24,55 +24,34 @@ import useModal from '../hooks/useModal';
 import Swal from 'sweetalert2';
 
 const Container = styled.div`
-  min-height: 100vh;
-  padding: 20px;
-  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 `;
 
 const CalendarLayout = styled.div`
   display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 24px;
+  grid-template-columns: 1fr 340px;
+  gap: var(--space-md);
   
   @media (max-width: 1200px) {
     grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  @media (max-width: 800px) {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
   }
 `;
 
 const CalendarSection = styled.div`
-  background: var(--glass-bg);
+  background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  padding: 24px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-soft);
   position: relative;
   overflow: hidden;
   width: 100%;
   min-width: 0;
   @media (max-width: 800px) {
-    padding: 10px 4px;
-  }
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimarySecondary);
-    opacity: 0.02;
-    transition: var(--transition);
-  }
-  
-  /* Content above overlay */
-  & > * {
-    position: relative;
-    z-index: 1;
+    padding: var(--space-sm);
   }
 `;
 
@@ -80,103 +59,96 @@ const CalendarHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-md);
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--space-sm);
 `;
 
 const CalendarNavigation = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-md);
 `;
 
 const NavButton = styled.button`
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   
   &:hover {
     color: var(--text-primary);
     border-color: var(--border-accent);
-    transform: scale(1.1);
+    background: var(--hover-bg);
   }
 `;
 
 const CurrentMonth = styled.h2`
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  min-width: 160px;
+  min-width: 140px;
   text-align: center;
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 `;
 
 const CalendarControls = styled.div`
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm);
   align-items: center;
   flex-wrap: wrap;
 `;
 
 const ViewToggle = styled.div`
   display: flex;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  padding: 2px;
 `;
 
 const ViewButton = styled.button`
-  background: ${props => props.$active ? 'var(--linearPrimarySecondary)' : 'transparent'};
-  color: ${props => props.$active ? 'white' : 'var(--text-secondary)'};
-  border: none;
-  padding: 8px 12px;
-  font-size: 12px;
+  background: ${props => props.$active ? 'var(--hover-bg)' : 'transparent'};
+  color: ${props => props.$active ? 'var(--text-primary)' : 'var(--text-secondary)'};
+  border: 1px solid ${props => props.$active ? 'var(--border-primary)' : 'transparent'};
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-xs);
   
   &:hover {
-    color: ${props => props.$active ? 'white' : 'var(--text-primary)'};
+    color: var(--text-primary);
   }
 `;
 
 const ActionButton = styled.button`
-  background: ${props => props.$primary ? 'var(--linearPrimarySecondary)' : 'var(--glass-bg)'};
-  backdrop-filter: var(--backdrop-blur);
-  color: ${props => props.$primary ? 'white' : 'var(--text-secondary)'};
-  border: 1px solid ${props => props.$primary ? 'transparent' : 'var(--border-glass)'};
+  background: ${props => props.$primary ? 'var(--primary)' : 'var(--bg-secondary)'};
+  color: ${props => props.$primary ? 'white' : 'var(--text-primary)'};
+  border: 1px solid ${props => props.$primary ? 'transparent' : 'var(--border-primary)'};
   border-radius: var(--radius-md);
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2xs);
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-    color: ${props => props.$primary ? 'white' : 'white'};
+    filter: brightness(1.1);
     ${props => !props.$primary && 'border-color: var(--border-accent);'}
   }
 `;
@@ -185,103 +157,72 @@ const CalendarGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
-  background: var(--border-glass);
-  border-radius: var(--radius-lg);
+  background: var(--border-primary);
+  border-radius: var(--radius-md);
   overflow-x: auto;
-  overflow-y: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-soft);
   min-width: 560px;
-  max-width: 100vw;
-  scrollbar-color: var(--color-primary) var(--glass-bg);
-  scrollbar-width: thin;
-  @media (max-width: 800px) {
-    min-width: 560px;
-    max-width: 100vw;
-    overflow-x: auto;
-    font-size: 12px;
-  }
-  &::-webkit-scrollbar {
-    height: 8px;
-    background: var(--glass-bg);
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
-    border-radius: 4px;
-  }
+  max-width: 100%;
 `;
 
 const DayHeader = styled.div`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  padding: 12px 8px;
+  background: var(--bg-secondary);
+  padding: 10px 4px;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 `;
 
 const DayCell = styled(motion.div)`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  min-height: 100px;
-  padding: 8px;
+  background: var(--bg-card);
+  min-height: 90px;
+  padding: var(--space-xs);
   cursor: pointer;
-  transition: var(--transition);
+  transition: background var(--transition-fast), color var(--transition-fast);
   position: relative;
   display: flex;
   flex-direction: column;
   min-width: 80px;
-  @media (max-width: 800px) {
-    min-height: 60px;
-    min-width: 60px;
-    padding: 4px;
-  }
   
   &:hover {
-    background: var(--linearPrimarySecondary);
-    color: white;
+    background: var(--hover-bg);
   }
   
   ${props => props.$isToday && `
-    background: var(--linearPrimaryAccent);
-    color: white;
-    
-    &:hover {
-      background: var(--linearPrimarySecondary);
-    }
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--primary);
   `}
   
   ${props => props.$isOtherMonth && `
-    opacity: 0.4;
+    opacity: 0.35;
   `}
   
   ${props => props.$isSelected && `
-    background: var(--linearPrimarySecondary);
-    color: white;
-    box-shadow: inset 0 0 0 2px var(--color-primary);
+    background: var(--hover-bg);
+    box-shadow: inset 0 0 0 2px var(--primary);
   `}
 `;
 
 const DayNumber = styled.div`
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: var(--space-2xs);
 `;
 
 const EventIndicator = styled.div`
   width: 100%;
-  height: 4px;
-  background: ${props => props.$color || 'var(--color-primary)'};
-  border-radius: 2px;
+  height: 3px;
+  background: ${props => props.$color || 'var(--primary)'};
+  border-radius: var(--radius-sm);
   margin-bottom: 2px;
-  opacity: 0.8;
 `;
 
 const EventCount = styled.div`
   font-size: 10px;
-  color: inherit;
+  color: var(--text-secondary);
   margin-top: auto;
   font-weight: 500;
 `;
@@ -289,83 +230,55 @@ const EventCount = styled.div`
 const Sidebar = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-md);
   width: 100%;
   min-width: 0;
-  @media (max-width: 800px) {
-    gap: 10px;
-  }
 `;
 
 const SidebarSection = styled.div`
-  background: var(--glass-bg);
+  background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  padding: 20px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
   position: relative;
   overflow: hidden;
   width: 100%;
   min-width: 0;
   @media (max-width: 800px) {
-    padding: 10px 4px;
-  }
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimarySecondary);
-    opacity: 0.02;
-    transition: var(--transition);
-  }
-  
-  /* Content above overlay */
-  & > * {
-    position: relative;
-    z-index: 1;
+    padding: var(--space-md);
   }
 `;
 
 const SidebarTitle = styled.h3`
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 16px 0;
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin: 0 0 var(--space-md) 0;
 `;
 
 const EventList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-sm);
   max-height: 400px;
   overflow-y: auto;
 `;
 
 const EventCard = styled(motion.div)`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-lg);
-  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   position: relative;
   width: 100%;
   min-width: 0;
-  @media (max-width: 800px) {
-    padding: 8px 4px;
-  }
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
     border-color: var(--border-accent);
+    background: var(--hover-bg);
   }
   
   &::before {
@@ -374,9 +287,8 @@ const EventCard = styled(motion.div)`
     left: 0;
     top: 0;
     bottom: 0;
-    width: 4px;
-    background: ${props => props.$color || 'var(--color-primary)'};
-    border-radius: 0 4px 4px 0;
+    width: 3px;
+    background: ${props => props.$color || 'var(--primary)'};
   }
 `;
 
@@ -384,11 +296,11 @@ const EventHeader = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2xs);
 `;
 
 const EventTitle = styled.h4`
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -398,10 +310,10 @@ const EventTitle = styled.h4`
 
 const EventActions = styled.div`
   display: flex;
-  gap: 4px;
+  gap: var(--space-2xs);
   opacity: 0;
-  transition: var(--transition);
-  margin-left: 8px;
+  transition: opacity var(--transition-fast);
+  margin-left: var(--space-sm);
   
   ${EventCard}:hover & {
     opacity: 1;
@@ -411,31 +323,29 @@ const EventActions = styled.div`
 const EventActionButton = styled.button`
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   
   &:hover {
     color: var(--text-primary);
     border-color: var(--border-accent);
-    transform: scale(1.1);
   }
 `;
 
 const EventMeta = styled.div`
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-2xs);
 `;
 
 const EventDescription = styled.p`
@@ -450,29 +360,25 @@ const EventDescription = styled.p`
 `;
 
 const PlatformBadge = styled.span`
-  background: ${props => 
-    props.$platform === 'Instagram' ? 'linear-gradient(135deg, #e1306c 0%, #fd1d1d 100%)' :
-    props.$platform === 'Twitter' ? 'linear-gradient(135deg, #1da1f2 0%, #0d8bd1 100%)' :
-    props.$platform === 'LinkedIn' ? 'linear-gradient(135deg, #0077b5 0%, #005885 100%)' :
-    props.$platform === 'Facebook' ? 'linear-gradient(135deg, #1877f2 0%, #0d65d9 100%)' :
-    'var(--linearPrimarySecondary)'
-  };
-  color: white;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 500;
 `;
 
 const EmptyState = styled.div`
   text-align: center;
-  padding: 40px 20px;
+  padding: var(--space-lg) var(--space-sm);
   color: var(--text-muted);
   
   h4 {
     color: var(--text-secondary);
-    margin: 0 0 8px 0;
-    font-size: 14px;
+    margin: 0 0 var(--space-2xs) 0;
+    font-size: 13px;
+    font-weight: 600;
   }
   
   p {
@@ -690,7 +596,11 @@ const Calendar = () => {
   }
   
   return (
-    <PageLayout>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Container>
         <PageHeader 
           title="Content Calendar"
@@ -881,92 +791,90 @@ const Calendar = () => {
         <Modal isOpen={eventModalOpen} onClose={closeEventModal} title={editingEvent ? 'Edit Event' : 'Add Event'}>
           <form onSubmit={(e) => {
             e.preventDefault();
-            if (!editingEvent) {
-              handleEventModalSave({
-                ...editingEvent,
-                id: Date.now() + Math.random(),
-                scheduledDate: new Date(editingEvent.scheduledDate).toISOString(),
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              });
-            } else {
-              handleEventModalSave(editingEvent);
-            }
+            const payload = {
+              ...editingEvent,
+              id: editingEvent.id || Date.now() + Math.random(),
+              scheduledDate: new Date(editingEvent.scheduledDate).toISOString(),
+              createdAt: editingEvent.createdAt || new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            handleEventModalSave(payload);
           }}>
-            <div>
-              <label htmlFor="event-platform">Platform</label>
-              <ModalSelect
-                id="event-platform"
-                name="platform"
-                value={editingEvent?.platform || 'Instagram'}
-                onChange={(e) => setEditingEvent(prev => ({ ...prev, platform: e.target.value }))}
-              >
-                <option value="Instagram">Instagram</option>
-                <option value="Twitter">Twitter</option>
-                <option value="LinkedIn">LinkedIn</option>
-                <option value="Facebook">Facebook</option>
-                <option value="YouTube">YouTube</option>
-                <option value="TikTok">TikTok</option>
-              </ModalSelect>
-            </div>
-            <div>
-              <label htmlFor="event-color">Event Color</label>
-              <ModalColorInput
-                type="color"
-                id="event-color"
-                name="color"
-                value={editingEvent?.color || '#6366f1'}
-                onChange={e => setEditingEvent(prev => ({ ...prev, color: e.target.value }))}
-                aria-label="Event Color"
-              />
-            </div>
-            <div>
-              <label htmlFor="event-title">Title</label>
-              <ModalInput
-                type="text"
-                id="event-title"
-                name="title"
-                value={editingEvent?.title || ''}
-                onChange={(e) => setEditingEvent(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Title"
-                required
-                autoFocus
-              />
-            </div>
-            <div>
-              <label htmlFor="event-description">Description</label>
-              <ModalTextarea
-                id="event-description"
-                name="description"
-                value={editingEvent?.description || ''}
-                onChange={(e) => setEditingEvent(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Description"
-              />
-            </div>
-            <div>
-              <label htmlFor="event-scheduled-date">Scheduled Date</label>
-              <ModalInput
-                type="datetime-local"
-                id="event-scheduled-date"
-                name="scheduledDate"
-                value={editingEvent?.scheduledDate || selectedDate.toISOString().slice(0, 16)}
-                onChange={(e) => setEditingEvent(prev => ({ ...prev, scheduledDate: e.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <ModalCheckboxLabel>
-                <ModalCheckbox
-                  type="checkbox"
-                  name="allDay"
-                  checked={!!editingEvent?.allDay}
-                  onChange={e => setEditingEvent(prev => ({ ...prev, allDay: e.target.checked }))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', margin: '16px 0' }}>
+              <div>
+                <label htmlFor="event-title">Title</label>
+                <ModalInput
+                  type="text"
+                  id="event-title"
+                  name="title"
+                  value={editingEvent?.title || ''}
+                  onChange={(e) => setEditingEvent(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Title"
+                  required
+                  autoFocus
                 />
-                All Day Event
-              </ModalCheckboxLabel>
+              </div>
+              <div>
+                <label htmlFor="event-description">Description</label>
+                <ModalTextarea
+                  id="event-description"
+                  name="description"
+                  value={editingEvent?.description || ''}
+                  onChange={(e) => setEditingEvent(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Description"
+                />
+              </div>
+              <div>
+                <label htmlFor="event-scheduled-date">Scheduled Date</label>
+                <ModalInput
+                  type="datetime-local"
+                  id="event-scheduled-date"
+                  name="scheduledDate"
+                  value={editingEvent?.scheduledDate ? new Date(new Date(editingEvent.scheduledDate).getTime() - new Date().getTimezoneOffset()*60000).toISOString().slice(0, 16) : selectedDate.toISOString().slice(0, 16)}
+                  onChange={(e) => setEditingEvent(prev => ({ ...prev, scheduledDate: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="event-platform">Platform</label>
+                <ModalSelect
+                  id="event-platform"
+                  name="platform"
+                  value={editingEvent?.platform || 'Instagram'}
+                  onChange={(e) => setEditingEvent(prev => ({ ...prev, platform: e.target.value }))}
+                >
+                  <option value="Instagram">Instagram</option>
+                  <option value="Twitter">Twitter</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Facebook">Facebook</option>
+                  <option value="YouTube">YouTube</option>
+                  <option value="TikTok">TikTok</option>
+                </ModalSelect>
+              </div>
+              <div>
+                <label htmlFor="event-color">Event Color</label>
+                <ModalInput
+                  type="color"
+                  id="event-color"
+                  name="color"
+                  value={editingEvent?.color || '#6366f1'}
+                  onChange={e => setEditingEvent(prev => ({ ...prev, color: e.target.value }))}
+                  aria-label="Event Color"
+                />
+              </div>
+              <div>
+                <ModalCheckboxLabel>
+                  <input
+                    type="checkbox"
+                    checked={!!editingEvent?.allDay}
+                    onChange={e => setEditingEvent(prev => ({ ...prev, allDay: e.target.checked }))}
+                  />
+                  All Day Event
+                </ModalCheckboxLabel>
+              </div>
             </div>
             <ModalActions>
-              <ModalButton type="submit" primary>{editingEvent ? 'Save' : 'Add'} Event</ModalButton>
+              <ModalButton type="submit" primary>{editingEvent?.id ? 'Save' : 'Add'} Event</ModalButton>
             </ModalActions>
           </form>
         </Modal>
@@ -976,7 +884,7 @@ const Calendar = () => {
           </ToastContainer>
         )}
       </Container>
-    </PageLayout>
+    </motion.div>
   )
 }
 

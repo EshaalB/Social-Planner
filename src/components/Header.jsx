@@ -6,23 +6,22 @@ import { useTheme } from '../context/ThemeContext'
 const HeaderContainer = styled.header`
   position: fixed;
   top: 0;
-  left: 80px;
+  left: var(--sidebar-width);
   right: 0;
   height: var(--header-height);
-  background: ${({ $scrolled }) => $scrolled ? 'var(--glass-bg)' : 'transparent'};
-  backdrop-filter: ${({ $scrolled }) => $scrolled ? 'var(--backdrop-blur)' : 'none'};
-  border-bottom: ${({ $scrolled }) => $scrolled ? '1px solid var(--border-glass)' : 'none'};
-  box-shadow: ${({ $scrolled }) => $scrolled ? 'var(--glass-shadow)' : 'none'};
-  z-index: 1300;
+  background: var(--bg-glass);
+  backdrop-filter: var(--backdrop-blur);
+  border-bottom: 1px solid var(--border-primary);
+  z-index: 1200;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  transition: background 0.3s, box-shadow 0.3s, border-bottom 0.3s, backdrop-filter 0.3s;
+  padding: 0 var(--space-lg);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
   
   @media (max-width: 1024px) {
     left: 0;
-    padding: 0 16px;
+    padding: 0 var(--space-md);
   }
 `;
 
@@ -31,24 +30,6 @@ const LeftSection = styled.div`
   align-items: center;
   flex: 1;
   min-width: 0;
-`;
-
-const BrandName = styled.h1`
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.025em;
-  
-  /* Gradient text effect for brand */
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  
-  @media (max-width: 1024px) {
-    display: none;
-  }
 `;
 
 const CenterSection = styled.div`
@@ -62,53 +43,36 @@ const CenterSection = styled.div`
 const ThemeToggleContainer = styled.div`
   display: flex;
   align-items: center;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: 50px;
-  padding: 4px;
-  box-shadow: var(--glass-shadow);
-  position: relative;
-  overflow: hidden;
-`;
-
-const ThemeToggleBackground = styled.div`
-  position: absolute;
-  top: 4px;
-  left: ${props => props.isDark ? '36px' : '4px'};
-  width: 32px;
-  height: 32px;
-  background: var(--linearPrimarySecondary);
-  border-radius: 50%;
-  transition: var(--transition);
-  box-shadow: var(--shadow-soft);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  padding: 2px;
 `;
 
 const ThemeButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  background: ${props => props.isActive ? 'var(--hover-bg)' : 'transparent'};
+  border-color: ${props => props.isActive ? 'var(--border-primary)' : 'transparent'};
+  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${props => props.isActive ? 'white' : 'var(--text-muted)'};
+  color: ${props => props.isActive ? 'var(--text-primary)' : 'var(--text-secondary)'};
   cursor: pointer;
-  transition: var(--transition);
-  position: relative;
-  z-index: 1;
+  transition: all var(--transition-fast);
   
   &:hover {
-    color: ${props => props.isActive ? 'white' : 'var(--text-primary)'};
-    transform: scale(1.1);
+    color: var(--text-primary);
+    background: var(--hover-bg);
   }
 `;
 
 const RightSection = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-xs);
   flex: 1;
   justify-content: flex-end;
   min-width: 0;
@@ -121,74 +85,40 @@ const SearchContainer = styled.div`
 `;
 
 const SearchButton = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: 1px solid transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--glass-shadow);
-  position: relative;
-  overflow: hidden;
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimaryAccent);
-    opacity: 0;
-    transition: var(--transition);
-    border-radius: 50%;
-  }
-  
-  /* Icon above overlay */
-  & > * {
-    position: relative;
-    z-index: 1;
-    transition: var(--transition);
-  }
+  transition: all var(--transition-fast);
   
   &:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: var(--shadow-medium), var(--shadow-glow);
-    color: white;
-    border-color: var(--border-accent);
-  }
-  
-  &:hover::before {
-    opacity: 1;
-  }
-  
-  &:hover > * {
-    transform: scale(1.1);
+    background: var(--hover-bg);
+    color: var(--text-primary);
   }
 `;
 
 const SearchInput = styled.input`
   position: absolute;
-  right: 50px;
+  right: 40px;
   top: 50%;
   transform: translateY(-50%);
   width: ${props => props.$isOpen ? '200px' : '0'};
-  height: 40px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: 20px;
-  padding: 0 16px;
-  font-size: 14px;
+  height: 32px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 0 12px;
+  font-size: 13px;
   color: var(--text-primary);
   opacity: ${props => props.$isOpen ? '1' : '0'};
   visibility: ${props => props.$isOpen ? 'visible' : 'hidden'};
-  transition: all var(--transition);
-  box-shadow: var(--glass-shadow);
+  transition: all var(--transition-fast);
   
   &::placeholder {
     color: var(--text-muted);
@@ -196,45 +126,31 @@ const SearchInput = styled.input`
   
   &:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: var(--focus-ring), var(--shadow-glow);
+    border-color: var(--primary);
   }
   
   @media (max-width: 768px) {
-    width: ${props => props.$isOpen ? '150px' : '0'};
+    width: ${props => props.$isOpen ? '140px' : '0'};
   }
 `;
 
 const ProfileButton = styled.button`
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--linearPrimarySecondary);
-  border: 2px solid var(--border-glass);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  object-fit: cover;
-  color: white;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--shadow-medium), var(--shadow-glow);
-  position: relative;
-  overflow: hidden;
-   
+  transition: all var(--transition-fast);
   
   &:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: var(--shadow-large), var(--shadow-accent-glow);
+    background: var(--hover-bg);
+    color: var(--text-primary);
     border-color: var(--border-accent);
-  }
-  
-  &:hover::before {
-    opacity: 1;
-  }
-  
-  &:hover > * {
-    transform: scale(1.1);
   }
 `;
 
@@ -242,23 +158,12 @@ const Header = () => {
   const { theme, toggleTheme } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [scrolled, setScrolled] = useState(false);
   
   const isDark = theme === 'dark';
-
-  React.useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 8);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const handleSearchToggle = () => {
     setSearchOpen(!searchOpen);
     if (!searchOpen) {
-      // Focus the input when opening
       setTimeout(() => {
         const input = document.querySelector('#search-input');
         if (input) input.focus();
@@ -270,39 +175,34 @@ const Header = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       console.log('Searching for:', searchQuery);
-      // Implement search functionality here
     }
   };
 
   const handleSearchBlur = () => {
-    // Close search if empty
     if (!searchQuery.trim()) {
       setSearchOpen(false);
     }
   };
 
   return (
-    <HeaderContainer $scrolled={scrolled}>
-      <LeftSection>
-        <BrandName>Social Planner</BrandName>
-      </LeftSection>
+    <HeaderContainer>
+      <LeftSection />
       
       <CenterSection>
         <ThemeToggleContainer>
-          <ThemeToggleBackground isDark={isDark} />
           <ThemeButton 
             isActive={!isDark}
-            onClick={toggleTheme}
+            onClick={() => isDark && toggleTheme()}
             aria-label="Switch to light mode"
           >
-            <FiSun size={16} />
+            <FiSun size={14} />
           </ThemeButton>
           <ThemeButton 
             isActive={isDark}
-            onClick={toggleTheme}
+            onClick={() => !isDark && toggleTheme()}
             aria-label="Switch to dark mode"
           >
-            <FiMoon size={16} />
+            <FiMoon size={14} />
           </ThemeButton>
         </ThemeToggleContainer> 
       </CenterSection>
@@ -324,12 +224,12 @@ const Header = () => {
             onClick={handleSearchToggle}
             aria-label="Search"
           >
-            <FiSearch size={18} />
+            <FiSearch size={16} />
           </SearchButton>
         </SearchContainer>
         
         <ProfileButton aria-label="Profile">
-          <FiUser size={18} />
+          <FiUser size={16} />
         </ProfileButton>
       </RightSection>
     </HeaderContainer>

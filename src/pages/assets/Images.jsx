@@ -191,14 +191,17 @@ const ImageCard = styled(motion.div)`
   background: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-glass);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   overflow: hidden;
   cursor: pointer;
-  transition: var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
   position: relative;
+  display: grid;
+  grid-template-rows: 180px auto;
+  min-height: 330px;
   
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     box-shadow: var(--shadow-large);
     border-color: var(--border-accent);
   }
@@ -210,63 +213,76 @@ const ImageCard = styled(motion.div)`
 
 const ImagePreview = styled.div`
   width: 100%;
-  height: 200px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 100%;
+  min-height: 180px;
+  background: linear-gradient(135deg, rgba(79,70,229,0.4) 0%, rgba(15,23,42,0.95) 100%);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px;
   color: white;
-  font-size: 48px;
   position: relative;
   overflow: hidden;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.95;
+  }
 `;
 
 const ImageActions = styled.div`
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 12px;
+  right: 12px;
   display: flex;
-  gap: 6px;
+  gap: 8px;
   opacity: 0;
   transition: var(--transition);
+  z-index: 2;
 `;
 
 const ImageInfo = styled.div`
-  padding: 16px;
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 `;
 
 const ImageTitle = styled.h4`
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 8px 0;
-  line-height: 1.3;
+  margin: 0;
+  line-height: 1.2;
 `;
 
 const ImageMeta = styled.div`
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
   font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
 `;
 
 const ImageTags = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 `;
 
 const Tag = styled.span`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  color: var(--text-secondary);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
 `;
 
 const ListItem = styled(motion.div)`
@@ -476,7 +492,11 @@ const Images = () => {
   )
   
   return (
-    <PageLayout>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Container>
         <BackButton onClick={handleBack}>
           <FiArrowLeft size={16} />
@@ -666,7 +686,7 @@ const Images = () => {
         </ContentArea>
       </Container>
       <AssetUploader isOpen={uploaderOpen} onClose={() => setUploaderOpen(false)} assetType="images" />
-    </PageLayout>
+    </motion.div>
   )
 }
 

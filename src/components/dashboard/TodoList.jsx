@@ -5,12 +5,11 @@ import { FiPlus, FiX, FiCalendar, FiClock, FiCheck, FiEdit3, FiImage, FiVideo, F
 import useStore from '../../context/store'
 
 const TodoContainer = styled.div`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  padding: 24px;
-  box-shadow: var(--shadow-card);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-soft);
   position: relative;
   overflow: hidden;
   height: fit-content;
@@ -18,24 +17,8 @@ const TodoContainer = styled.div`
   width: 100%;
   min-width: 0;
   @media (max-width: 700px) {
-    padding: 12px 6px;
+    padding: var(--space-md) var(--space-sm);
     max-height: none;
-  }
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimarySecondary);
-    opacity: 0.02;
-    transition: var(--transition);
-  }
-  
-  /* Content above overlay */
-  & > * {
-    position: relative;
-    z-index: 1;
   }
 `;
 
@@ -43,54 +26,50 @@ const TodoHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-md);
 `;
 
 const TodoTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 `;
 
 const TodoCount = styled.span`
-  background: var(--linearPrimarySecondary);
-  color: white;
-  font-size: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+  font-size: 11px;
   font-weight: 600;
-  padding: 4px 8px;
+  padding: 2px 6px;
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-soft);
+  margin-left: var(--space-xs);
 `;
 
 const AddButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--linearPrimaryAccent);
-  border: none;
-  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-fast);
   
   &:hover {
-    transform: scale(1.1);
-    box-shadow: var(--shadow-medium);
+    background: var(--hover-bg);
+    border-color: var(--border-accent);
   }
 `;
 
 const TodoList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-xs);
   max-height: 400px;
   overflow-y: auto;
   width: 100%;
@@ -99,31 +78,25 @@ const TodoList = styled.div`
     max-height: none;
   }
   
-  /* Custom scrollbar */
   &::-webkit-scrollbar {
     width: 4px;
   }
-  
   &::-webkit-scrollbar-track {
-    background: var(--glass-bg);
-    border-radius: 2px;
+    background: transparent;
   }
-  
   &::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
-    border-radius: 2px;
+    background: var(--border-primary);
+    border-radius: var(--radius-sm);
   }
 `;
 
 const TodoItem = styled(motion.div)`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-lg);
-  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
   cursor: pointer;
-  transition: var(--transition);
-  position: relative;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
   
   ${props => props.$completed && `
     opacity: 0.6;
@@ -132,39 +105,35 @@ const TodoItem = styled(motion.div)`
   
   &:hover {
     border-color: var(--border-accent);
-    transform: translateX(4px);
+    background: var(--hover-bg);
   }
   width: 100%;
   min-width: 0;
-  @media (max-width: 700px) {
-    padding: 10px 4px;
-  }
 `;
 
 const TodoContent = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--space-sm);
 `;
 
 const TodoCheckbox = styled.button`
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid ${props => props.$completed ? 'var(--color-success)' : 'var(--border-glass)'};
-  background: ${props => props.$completed ? 'var(--color-success)' : 'transparent'};
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid ${props => props.$completed ? 'var(--primary)' : 'var(--border-accent)'};
+  background: ${props => props.$completed ? 'var(--primary)' : 'transparent'};
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   flex-shrink: 0;
   margin-top: 2px;
   
   &:hover {
-    border-color: var(--color-success);
-    transform: scale(1.1);
+    border-color: var(--primary);
   }
 `;
 
@@ -172,12 +141,12 @@ const TodoDetails = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 `;
 
 const TodoText = styled.div`
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-primary);
   line-height: 1.3;
 `;
@@ -191,19 +160,20 @@ const TodoSubtitle = styled.div`
 const TodoMeta = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 4px;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
 `;
 
 const TodoTag = styled.span`
-  background: ${props => props.$color || 'var(--glass-bg)'};
-  color: ${props => props.$color ? 'white' : 'var(--text-muted)'};
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
   font-size: 10px;
-  font-weight: 600;
-  padding: 2px 6px;
+  font-weight: 500;
+  padding: 1px 4px;
   border-radius: var(--radius-sm);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 `;
 
 const TodoTime = styled.div`
@@ -215,20 +185,22 @@ const TodoTime = styled.div`
 `;
 
 const TodoIcon = styled.div`
-  color: ${props => props.$color || 'var(--text-muted)'};
+  color: var(--text-muted);
   display: flex;
   align-items: center;
+  font-size: 12px;
 `;
 
 const EmptyState = styled.div`
   text-align: center;
-  padding: 40px 20px;
+  padding: var(--space-xl) var(--space-md);
   color: var(--text-muted);
   
   h4 {
     color: var(--text-secondary);
-    margin: 0 0 8px 0;
-    font-size: 14px;
+    margin: 0 0 4px 0;
+    font-size: 13px;
+    font-weight: 600;
   }
   
   p {
@@ -471,10 +443,12 @@ const TodoListComponent = () => {
               onChange={e => setNewTodo(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') addCustomTodo(); }}
               style={{
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: '1.5px solid var(--border-glass)',
-                fontSize: 14,
+                padding: '6px 10px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-primary)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                fontSize: 13,
                 outline: 'none',
                 minWidth: 120
               }}

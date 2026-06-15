@@ -31,31 +31,30 @@ import AssetUploader from '../components/AssetUploader';
 import Swal from 'sweetalert2';
 
 const Container = styled.div`
-  min-height: 100vh;
-  padding: 20px;
-  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 `;
 
 const SettingsGrid = styled.div`
   display: grid;
-  grid-template-columns: 250px 1fr;
-  gap: 24px;
+  grid-template-columns: 240px 1fr;
+  gap: var(--space-md);
   
   @media (max-width: 968px) {
     grid-template-columns: 1fr;
-    gap: 20px;
   }
 `;
 
 const Sidebar = styled.div`
-  background: var(--glass-bg);
+  background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  padding: 24px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
   height: fit-content;
   position: sticky;
-  top: 20px;
+  top: calc(var(--header-height) + var(--space-md));
   
   @media (max-width: 968px) {
     position: static;
@@ -63,109 +62,86 @@ const Sidebar = styled.div`
 `;
 
 const SidebarTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 20px 0;
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin: 0 0 var(--space-md) 0;
 `;
 
 const SidebarMenu = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 `;
 
 const MenuItem = styled.button`
-  background: ${props => props.$active ? 'var(--linearPrimarySecondary)' : 'transparent'};
-  color: ${props => props.$active ? 'white' : 'var(--text-secondary)'};
-  border: none;
+  background: ${props => props.$active ? 'var(--hover-bg)' : 'transparent'};
+  color: ${props => props.$active ? 'var(--text-primary)' : 'var(--text-secondary)'};
+  border: 1px solid ${props => props.$active ? 'var(--border-primary)' : 'transparent'};
   border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: 8px 12px;
   text-align: left;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 14px;
+  gap: var(--space-sm);
+  font-size: 13px;
   font-weight: 500;
   
   &:hover {
-    color: ${props => props.$active ? 'white' : 'var(--text-primary)'};
-    background: ${props => props.$active ? 'var(--linearPrimarySecondary)' : 'var(--glass-bg)'};
+    color: var(--text-primary);
+    background: var(--hover-bg);
   }
 `;
 
 const MainContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--space-md);
 `;
 
 const SettingsSection = styled(motion.div)`
-  background: var(--glass-bg);
+  background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  padding: 28px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
   position: relative;
   overflow: hidden;
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimarySecondary);
-    opacity: 0.02;
-    transition: var(--transition);
-  }
-  
-  /* Content above overlay */
-  & > * {
-    position: relative;
-    z-index: 1;
-  }
 `;
 
 const SectionHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
 `;
 
 const SectionIcon = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-lg);
-  background: var(--linearPrimarySecondary);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 18px;
+  color: var(--primary);
+  font-size: 16px;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 `;
 
 const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-md);
   
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
@@ -175,32 +151,30 @@ const FormGrid = styled.div`
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2xs);
 `;
 
 const FormLabel = styled.label`
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2xs);
 `;
 
 const FormInput = styled.input`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: 8px 12px;
   color: var(--text-primary);
-  font-size: 14px;
-  transition: var(--transition);
+  font-size: 13px;
+  transition: all var(--transition-fast);
   
   &:focus {
     outline: none;
-    border-color: var(--border-accent);
-    box-shadow: var(--focus-ring);
+    border-color: var(--primary);
   }
   
   &::placeholder {
@@ -209,24 +183,22 @@ const FormInput = styled.input`
 `;
 
 const FormSelect = styled.select`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: 8px 12px;
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   
   &:focus {
     outline: none;
-    border-color: var(--border-accent);
-    box-shadow: var(--focus-ring);
+    border-color: var(--primary);
   }
   
   option {
-    background: var(--bg-card);
+    background: var(--bg-secondary);
     color: var(--text-primary);
   }
 `;
@@ -235,13 +207,12 @@ const ToggleGroup = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-lg);
-  margin-bottom: 12px;
-  transition: var(--transition);
+  padding: var(--space-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-xs);
+  transition: all var(--transition-fast);
   
   &:hover {
     border-color: var(--border-accent);
@@ -253,10 +224,10 @@ const ToggleInfo = styled.div`
 `;
 
 const ToggleTitle = styled.h4`
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0;
 `;
 
 const ToggleDescription = styled.p`
@@ -267,89 +238,81 @@ const ToggleDescription = styled.p`
 `;
 
 const ToggleSwitch = styled.button`
-  width: 48px;
-  height: 24px;
-  border-radius: 12px;
+  width: 40px;
+  height: 20px;
+  border-radius: var(--radius-xl);
   border: none;
-  background: ${props => props.$active ? 'var(--linearPrimarySecondary)' : 'var(--glass-bg)'};
-  border: 1px solid ${props => props.$active ? 'transparent' : 'var(--border-glass)'};
+  background: ${props => props.$active ? 'var(--primary)' : 'var(--hover-bg)'};
+  border: 1px solid ${props => props.$active ? 'transparent' : 'var(--border-primary)'};
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   position: relative;
   
   &::after {
     content: '';
     position: absolute;
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: white;
     top: 2px;
-    left: ${props => props.$active ? '26px' : '2px'};
-    transition: var(--transition);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  &:hover {
-    transform: scale(1.05);
+    left: ${props => props.$active ? '22px' : '2px'};
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-soft);
   }
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 12px;
-  margin-top: 24px;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
   flex-wrap: wrap;
 `;
 
 const ActionButton = styled.button`
-  background: ${props => props.$primary ? 'var(--linearPrimarySecondary)' : 'var(--glass-bg)'};
-  backdrop-filter: var(--backdrop-blur);
-  color: ${props => props.$primary ? 'white' : 'var(--text-secondary)'};
-  border: 1px solid ${props => props.$primary ? 'transparent' : 'var(--border-glass)'};
+  background: ${props => props.$primary ? 'var(--primary)' : 'var(--bg-secondary)'};
+  color: ${props => props.$primary ? 'white' : 'var(--text-primary)'};
+  border: 1px solid ${props => props.$primary ? 'transparent' : 'var(--border-primary)'};
   border-radius: var(--radius-md);
-  padding: 10px 20px;
-  font-size: 14px;
+  padding: 8px 16px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2xs);
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-    color: ${props => props.$primary ? 'white' : 'white'};
+    filter: brightness(1.1);
     ${props => !props.$primary && 'border-color: var(--border-accent);'}
   }
   
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
   }
 `;
 
 const DangerZone = styled.div`
-  border: 1px solid #ff6b6b;
+  border: 1px solid var(--color-error);
   border-radius: var(--radius-lg);
-  padding: 20px;
-  background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(238, 90, 82, 0.05) 100%);
-  margin-top: 24px;
+  padding: var(--space-lg);
+  background: rgba(239, 68, 68, 0.04);
+  margin-top: var(--space-md);
 `;
 
 const DangerTitle = styled.h4`
-  color: #ff6b6b;
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0 0 8px 0;
+  color: var(--color-error);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 var(--space-2xs) 0;
 `;
 
 const DangerDescription = styled.p`
   color: var(--text-secondary);
-  font-size: 13px;
-  margin: 0 0 16px 0;
+  font-size: 12px;
+  margin: 0 0 var(--space-md) 0;
   line-height: 1.5;
 `;
 
@@ -859,7 +822,11 @@ const Settings = () => {
   }
   
   return (
-    <PageLayout>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Container>
         <PageHeader 
           title="Settings"
@@ -890,7 +857,7 @@ const Settings = () => {
         </SettingsGrid>
         <AssetUploader isOpen={uploaderOpen} onClose={() => setUploaderOpen(false)} assetType="images" />
       </Container>
-    </PageLayout>
+    </motion.div>
   )
 }
 

@@ -4,156 +4,104 @@ import { FiCoffee, FiSun, FiZap, FiTrendingUp, FiCalendar } from 'react-icons/fi
 import useStore from '../../context/store'
 
 const WelcomeContainer = styled.div`
-  background: var(--glass-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  padding: 24px 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  min-height: 160px;
-  height: auto;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-soft);
   position: relative;
   overflow: hidden;
-  transition: var(--transition);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-large), var(--shadow-glow);
-  }
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimarySecondary);
-    opacity: 0.03;
-    transition: var(--transition);
-  }
-  
-  &:hover::before {
-    opacity: 0.05;
-  }
-  @media (max-width: 700px) {
-    padding: 14px 8px;
-    min-height: 120px;
-  }
+  gap: var(--space-md);
 `;
 
 const WelcomeHeader = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: var(--space-md);
 `;
 
 const WelcomeContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2xs);
   flex: 1;
 `;
 
 const TimeInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
 `;
 
 const WelcomeIcon = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--linearPrimaryAccent);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 18px;
-  box-shadow: var(--shadow-medium), var(--shadow-glow);
-  animation: float 6s ease-in-out infinite;
+  color: var(--primary);
+  font-size: 16px;
   flex-shrink: 0;
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
-  }
 `;
 
-const WelcomeTitle = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
+const WelcomeTitle = styled.h2`
+  font-size: 20px;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   line-height: 1.2;
-  
-  /* Gradient text effect */
-  background: var(--linearPrimaryAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  
-  @media (max-width: 768px) {
-    font-size: 20px;
-  }
-  @media (max-width: 700px) {
-    font-size: 17px;
-  }
 `;
 
 const WelcomeSubtitle = styled.p`
-  font-size: 15px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 `;
 
 const StatsRow = styled.div`
   display: flex;
-  gap: 20px;
-  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-primary);
   align-items: center;
 `;
 
 const QuickStat = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2xs);
   font-size: 13px;
   color: var(--text-secondary);
   font-weight: 500;
   
   .icon {
-    color: var(--color-primary);
+    color: var(--primary);
   }
-`;
-
-const MotivationText = styled.div`
-  font-size: 13px;
-  color: var(--text-muted);
-  font-style: italic;
-  margin-top: 8px;
 `;
 
 const WelcomeCard = () => {
   const { contents, getStats } = useStore()
   
-  // Get current time info
   const now = new Date()
   const currentHour = now.getHours()
   const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' })
   const currentDate = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
   
-  // Determine greeting and icon based on time
   const getGreeting = () => {
     if (currentHour < 12) return { text: 'Good Morning', icon: <FiSun /> }
     if (currentHour < 17) return { text: 'Good Afternoon', icon: <FiZap /> }
@@ -161,11 +109,8 @@ const WelcomeCard = () => {
   }
   
   const greeting = getGreeting()
-  
-  // Get real stats from the store
   const stats = getStats()
   
-  // Get upcoming scheduled content (next 7 days)
   const getUpcomingContent = () => {
     const today = new Date()
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
@@ -179,7 +124,6 @@ const WelcomeCard = () => {
   
   const upcomingCount = getUpcomingContent()
   
-  // Get today's scheduled content
   const getTodayContent = () => {
     const today = new Date().toDateString()
     return contents.filter(content => {
@@ -190,39 +134,32 @@ const WelcomeCard = () => {
   
   const todayCount = getTodayContent()
   
-  
   return (
     <WelcomeContainer>
-      <div>
-        <WelcomeHeader>
-          <WelcomeContent>
-            <TimeInfo>
-              <span>{currentDay}, {currentDate}</span>
-            </TimeInfo>
-            <WelcomeTitle>{greeting.text}!</WelcomeTitle>
-            <WelcomeSubtitle>
-              Ready to create engaging content and grow your audience?
-            </WelcomeSubtitle>
-          </WelcomeContent>
-          <WelcomeIcon>
-            {greeting.icon}
-          </WelcomeIcon>
-        </WelcomeHeader>
-        
-     
-      </div>
+      <WelcomeHeader>
+        <WelcomeContent>
+          <TimeInfo>{currentDay}, {currentDate}</TimeInfo>
+          <WelcomeTitle>{greeting.text}!</WelcomeTitle>
+          <WelcomeSubtitle>
+            Ready to create engaging content and grow your audience?
+          </WelcomeSubtitle>
+        </WelcomeContent>
+        <WelcomeIcon>
+          {greeting.icon}
+        </WelcomeIcon>
+      </WelcomeHeader>
       
       <StatsRow>
         <QuickStat>
-          <FiCalendar className="icon" size={14} />
+          <FiCalendar className="icon" size={13} />
           <span>{todayCount} today</span>
         </QuickStat>
         <QuickStat>
-          <FiTrendingUp className="icon" size={14} />
+          <FiTrendingUp className="icon" size={13} />
           <span>{upcomingCount} this week</span>
         </QuickStat>
         <QuickStat>
-          <FiZap className="icon" size={14} />
+          <FiZap className="icon" size={13} />
           <span>{stats.published} published</span>
         </QuickStat>
       </StatsRow>
@@ -230,4 +167,4 @@ const WelcomeCard = () => {
   )
 }
 
-export default WelcomeCard 
+export default WelcomeCard; 

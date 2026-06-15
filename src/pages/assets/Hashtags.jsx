@@ -193,14 +193,18 @@ const HashtagCard = styled(motion.div)`
   background: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-glass);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+  border-radius: var(--radius-xl);
+  padding: 22px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
   position: relative;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     box-shadow: var(--shadow-large);
     border-color: var(--border-accent);
   }
@@ -214,19 +218,20 @@ const HashtagHeader = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
 `;
 
 const HashtagTitle = styled.h4`
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--text-primary);
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.25;
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 `;
 
 const HashtagIcon = styled.div`
@@ -677,7 +682,11 @@ const Hashtags = () => {
   }
   
   return (
-    <PageLayout>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Container>
         <BackButton onClick={handleBack}>
           <FiArrowLeft size={16} />
@@ -800,9 +809,6 @@ const Hashtags = () => {
                           <IconButton onClick={() => handleHashtagAction('copy', hashtagSet)} aria-label="Copy hashtag set">
                             <FiCopy size={12} />
                           </IconButton>
-                          <IconButton onClick={() => handleHashtagAction('edit', hashtagSet)} aria-label="Edit hashtag set">
-                            <FiHash size={12} />
-                          </IconButton>
                           <IconButton onClick={() => handleHashtagAction('delete', hashtagSet)} aria-label="Delete hashtag set">
                             <FiTrash2 size={12} />
                           </IconButton>
@@ -810,32 +816,34 @@ const Hashtags = () => {
                       </HashtagHeader>
                       
                       <HashtagGrid>
-                        {hashtagSet.hashtags.map((hashtag, hashtagIndex) => (
-                          <HashtagChip key={hashtagIndex}>
-                            {hashtag}
-                          </HashtagChip>
+                        {hashtagSet.hashtags.map((tag, tagIndex) => (
+                          <HashtagChip key={tagIndex} onClick={() => {
+                            navigator.clipboard.writeText(tag);
+                          }}>{tag}</HashtagChip>
                         ))}
                       </HashtagGrid>
                       
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0', lineHeight: 1.4 }}>
+                        {hashtagSet.description}
+                      </p>
+                      
                       <HashtagMeta>
-                        <CategoryBadge>{hashtagSet.category}</CategoryBadge>
+                        <HashtagStats>
+                          <MetricBadge $type="reach">
+                            <FiUsers size={10} />
+                            {hashtagSet.reach}
+                          </MetricBadge>
+                          <MetricBadge $type="engagement">
+                            <FiTrendingUp size={10} />
+                            {hashtagSet.engagement}
+                          </MetricBadge>
+                          <MetricBadge $type="posts">
+                            <FiHash size={10} />
+                            {hashtagSet.posts}
+                          </MetricBadge>
+                        </HashtagStats>
                         <span>{hashtagSet.date}</span>
                       </HashtagMeta>
-                      
-                      <HashtagStats>
-                        <MetricBadge $type="reach">
-                          <FiUsers size={10} />
-                          {hashtagSet.reach}
-                        </MetricBadge>
-                        <MetricBadge $type="engagement">
-                          <FiBarChart2 size={10} />
-                          {hashtagSet.engagement}
-                        </MetricBadge>
-                        <MetricBadge $type="posts">
-                          <FiHash size={10} />
-                          {hashtagSet.posts}
-                        </MetricBadge>
-                      </HashtagStats>
                     </HashtagCard>
                   ))}
                 </AnimatePresence>
@@ -869,9 +877,6 @@ const Hashtags = () => {
                           <IconButton onClick={() => handleHashtagAction('copy', hashtagSet)} aria-label="Copy hashtag set">
                             <FiCopy size={12} />
                           </IconButton>
-                          <IconButton onClick={() => handleHashtagAction('edit', hashtagSet)} aria-label="Edit hashtag set">
-                            <FiHash size={12} />
-                          </IconButton>
                           <IconButton onClick={() => handleHashtagAction('delete', hashtagSet)} aria-label="Delete hashtag set">
                             <FiTrash2 size={12} />
                           </IconButton>
@@ -879,28 +884,32 @@ const Hashtags = () => {
                       </ListHeader>
                       
                       <ListHashtags>
-                        {hashtagSet.hashtags.slice(0, 8).map((hashtag, hashtagIndex) => (
-                          <ListHashtagChip key={hashtagIndex}>
-                            {hashtag}
-                          </ListHashtagChip>
+                        {hashtagSet.hashtags.map((tag, tagIndex) => (
+                          <ListHashtagChip key={tagIndex}>{tag}</ListHashtagChip>
                         ))}
-                        {hashtagSet.hashtags.length > 8 && (
-                          <ListHashtagChip>+{hashtagSet.hashtags.length - 8} more</ListHashtagChip>
-                        )}
                       </ListHashtags>
                       
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 12px 0', lineHeight: 1.4 }}>
+                        {hashtagSet.description}
+                      </p>
+                      
                       <ListMeta>
-                        <CategoryBadge>{hashtagSet.category}</CategoryBadge>
                         <MetricBadge $type="reach">
                           <FiUsers size={10} />
-                          {hashtagSet.reach}
+                          Reach: {hashtagSet.reach}
                         </MetricBadge>
                         <MetricBadge $type="engagement">
-                          <FiBarChart2 size={10} />
-                          {hashtagSet.engagement}
+                          <FiTrendingUp size={10} />
+                          Engagement: {hashtagSet.engagement}
+                        </MetricBadge>
+                        <MetricBadge $type="posts">
+                          <FiHash size={10} />
+                          Posts: {hashtagSet.posts}
                         </MetricBadge>
                         <span>•</span>
                         <span>{hashtagSet.date}</span>
+                        <span>•</span>
+                        <CategoryBadge>{hashtagSet.category}</CategoryBadge>
                       </ListMeta>
                     </ListItem>
                   ))}
@@ -942,8 +951,8 @@ const Hashtags = () => {
           </Modal>
         )}
       </Container>
-    </PageLayout>
+    </motion.div>
   )
 }
 
-export default Hashtags 
+export default Hashtags

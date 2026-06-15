@@ -58,11 +58,12 @@ const HeaderTitle = styled.h1`
   letter-spacing: -0.025em;
   line-height: 1.2;
   
-  /* Gradient text effect */
-  background: var(--linearPrimaryAccent);
+  /* Gradient text effect with theme-safe fallback */
+  background: var(--linearPrimaryAccent, linear-gradient(90deg, var(--primary), var(--accent)));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  color: var(--text-primary);
   
   @media (max-width: 768px) {
     font-size: 24px;

@@ -4,39 +4,22 @@ import { FiBarChart2, FiSettings } from 'react-icons/fi'
 import useStore from '../../context/store'
 
 const AnalyticsContainer = styled.div`
-  margin-top: -380px;
-  width: 500px;
-  background: var(--glass-bg);
-  margin-right: 20px;
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  box-shadow: var(--shadow-card);
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-soft);
   position: relative;
   overflow: hidden;
-  transition: var(--transition);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-large), var(--shadow-glow);
-  }
-  
-  /* Gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--linearPrimarySecondary);
-    opacity: 0.02;
-    transition: var(--transition);
-  }
-  
-  &:hover::before {
-    opacity: 0.04;
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-medium);
   }
   @media (max-width: 700px) {
-    padding: 14px 6px;
+    padding: var(--space-md) var(--space-sm);
   }
 `;
 
@@ -44,51 +27,49 @@ const AnalyticsHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-md);
 `;
 
 const AnalyticsTitle = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-sm);
   
   h3 {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
   }
   
   p {
-    font-size: 14px;
+    font-size: 12px;
     color: var(--text-muted);
     margin: 0;
   }
 `;
 
 const AnalyticsIcon = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--linearPrimaryAccent);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 18px;
-  box-shadow: var(--shadow-soft);
+  color: var(--primary);
+  font-size: 16px;
 `;
 
- 
-
 const ChartContainer = styled.div`
-  height: 180px;
+  height: 200px;
   position: relative;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-md);
   width: 100%;
   max-width: 100%;
   @media (max-width: 700px) {
-    height: 120px;
+    height: 130px;
     margin-bottom: 12px;
   }
 `;
@@ -102,42 +83,31 @@ const ChartSvg = styled.svg`
 
 const ChartPath = styled.path`
   fill: none;
-  stroke: var(--color-primary);
-  stroke-width: 3;
+  stroke: var(--primary);
+  stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 4px 8px rgba(124, 58, 237, 0.3));
 `;
 
 const ChartDots = styled.circle`
-  fill: var(--color-primary);
-  stroke: white;
-  stroke-width: 3;
-  r: 6;
-  filter: drop-shadow(0 2px 4px rgba(124, 58, 237, 0.5));
+  fill: var(--primary);
+  stroke: var(--bg-card);
+  stroke-width: 2;
+  r: 4;
 `;
 
 const ChartTooltip = styled.div`
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background: var(--linearPrimarySecondary);
-  color: white;
-  padding: 8px 12px;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: var(--shadow-medium);
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: var(--color-primary);
-  }
+  top: 12px;
+  right: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  box-shadow: var(--shadow-soft);
 `;
 
 const YAxisLabels = styled.div`
@@ -148,7 +118,7 @@ const YAxisLabels = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 10px;
   color: var(--text-muted);
   padding: 10px 0;
 `;
@@ -157,29 +127,25 @@ const SummarySection = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
-  border-top: 1px solid var(--border-glass);
+  padding: var(--space-md) 0 0;
+  border-top: 1px solid var(--border-primary);
 `;
 
 const SummaryItem = styled.div`
   text-align: center;
   
   .label {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.05em;
   }
   
   .value {
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 600;
     color: var(--text-primary);
-    background: var(--linearPrimaryAccent);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
   }
 `;
 
@@ -263,7 +229,7 @@ const AnalyticsChart = (props) => {
         <ChartSvg viewBox="0 0 400 200" preserveAspectRatio="none">
           <defs>
             <pattern id="grid" width="50" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 50 0 L 0 0 0 40" fill="none" stroke="var(--border-glass)" strokeWidth="1" opacity="0.3"/>
+              <path d="M 50 0 L 0 0 0 40" fill="none" stroke="var(--border-primary)" strokeWidth="1" opacity="0.3"/>
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
